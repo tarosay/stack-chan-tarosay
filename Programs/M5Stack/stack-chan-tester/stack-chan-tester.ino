@@ -176,8 +176,10 @@ void setup() {
 
   M5.Power.setExtOutput(!system_config.getUseTakaoBase());  // 設定ファイルのTakaoBaseがtrueの場合は、Groveポートの5V出力をONにする。
 
-  M5_LOGI("ServoType: %d\n", system_config.getServoType());
-  //M5_LOGI("HelloWorldUSBSerial");
+  M5_LOGI("ServoType: %d", system_config.getServoType());
+  M5_LOGI("AXIS_X: %d",system_config.getServoInfo(AXIS_X)->pin);
+  M5_LOGI("AXIS_Y: %d",system_config.getServoInfo(AXIS_Y)->pin);
+
   avatar.init();
 
   last_mouth_millis = millis();
