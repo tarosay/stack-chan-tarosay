@@ -1,7 +1,25 @@
 # stack-chan-tarosay
 オリジナルのスタックチャンです
 
-stackchan-arduinoのソースを修正しています。
+## コンパイルに必要なライブラリ
+
+- **M5Stack by M5Stack**: [GitHub Repository](https://github.com/m5stack/m5stack)
+- **M5Stack-SD-Updater by tobozo**: [GitHub Repository](https://github.com/tobozo/M5Stack-SD-Updater/)
+- **YAMLDuino by tobozo**: [GitHub Repository](https://github.com/tobozo/YAMLDuino)
+- **ServoEasing by Ammin Joachimsmeyer**: [GitHub Repository](https://github.com/ArminJo/ServoEasing)
+- **SCServo by FT&WS**: [GitHub Repository](https://github.com/workloads/scservo)
+- **Dynamixel2Arduino by ROBOTIS**: [GitHub Repository](https://github.com/ROBOTIS-GIT/dynamixel2arduino)
+- **M5Stack_Avatar by Shinya Ishikawa**: [PlatformIO Registry](https://registry.platformio.org/libraries/meganetaaan/M5Stack-Avatar)
+
+## SCSCL::WritePos()のエラー修正
+
+使っているライブラリが実は違います。本来は以下を使います。
+
+[https://github.com/mongonta0716/SCServo](https://github.com/mongonta0716/SCServo)
+
+一番簡単な変更方法は、インストールしたSCServoのsrcのフォルダの中身を、上のリポジトリからダウンロードしたソースに置き換えてしまう方法です。
+
+または、以下のように、stackchan-arduinoのソースを書き換えます。
 
 コンパイルすると、以下のエラーがでます。
 Stackchan_servo.cpp:58:128: error: no matching function for call to 'SCSCL::WritePos(int, long int, int)'
