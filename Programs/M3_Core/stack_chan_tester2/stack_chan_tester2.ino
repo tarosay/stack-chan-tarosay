@@ -104,6 +104,7 @@ void moveRandom() {
     }
     int delay_time = random(10);
     servo.moveXY(x, y, 1000 + 100 * delay_time);
+
     //しゃべる
     speachWav(wavs, sizeof(wavs));
 
