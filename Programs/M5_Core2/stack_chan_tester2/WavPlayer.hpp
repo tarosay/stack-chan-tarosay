@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 #include <AudioFileSourcePROGMEM.h>
+#include <AudioGeneratorMP3.h>
 
 class WavPlayer {
 public:

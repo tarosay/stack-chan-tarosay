@@ -2,7 +2,6 @@
 
 #include <WiFi.h>
 #include "Wavs.hpp"
-#include "Wavs1.hpp"
 #include "WavPlayer.hpp"
 
 #include <SD.h>
@@ -22,9 +21,15 @@ int servo_offset_y = 0;  // Y軸サーボのオフセット（サーボの初期
 
 #include <Avatar.h>          // https://github.com/meganetaaan/m5stack-avatar
 #include "formatString.hpp"  // https://gist.github.com/GOB52/e158b689273569357b04736b78f050d6
+#include <faces/FaceTemplates.hpp>
 
 using namespace m5avatar;
 Avatar avatar;
+
+Face *faces[5];
+const int num_faces = sizeof(faces) / sizeof(Face *);
+int face_idx = 0;  // face index
+
 
 #define START_DEGREE_VALUE_X 90
 #define START_DEGREE_VALUE_Y 90
@@ -106,7 +111,8 @@ void moveRandom() {
     int delay_time = random(10);
     servo.moveXY(x, y, 1000 + 100 * delay_time);
     //しゃべる
-    speachWav(wavs1, sizeof(wavs1));
+    speachWav(wavs, sizeof(wavs));
+
 
     delay(2000 + 500 * delay_time);
     if (!core_port_a) {
@@ -191,7 +197,16 @@ void setup() {
   M5_LOGI("AXIS_X: %d", system_config.getServoInfo(AXIS_X)->pin);
   M5_LOGI("AXIS_Y: %d", system_config.getServoInfo(AXIS_Y)->pin);
 
-  avatar.init();  // start drawing
+  faces[0] = avatar.getFace();  // native face
+  faces[1] = new DoggyFace();
+  faces[2] = new OmegaFace();
+  faces[3] = new GirlyFace();
+  faces[4] = new PinkDemonFace();
+
+
+  avatar.init(8);  // start drawing
+
+
 
   last_mouth_millis = millis();
   //moveRandom();
@@ -235,6 +250,7 @@ void loop() {
   } else if (M5.BtnC.wasPressed()) {
     // ランダムモードへ
     //mumumuServo(); // 左右に高速で首を振ります。（サーボが壊れるのであまり使わないでください。）
+    avatar.setSpeechText("");
     moveRandom();  // ランダムモードになります。
   }
 
@@ -255,16 +271,38 @@ void loop() {
 
 void speachWav(const uint8_t *wavFile, uint32_t fileSize) {
   //口を開ける
-  avatar.setMouthOpenRatio(0.7);
-  uint32_t end_mouth_millis = millis() + wavPlayer.play(wavFile, fileSize) - 200;
-  delay(200);
-  avatar.setMouthOpenRatio(0.0);
+  //avatar.setMouthOpenRatio(0.7);
+  uint32_t end_mouth_millis = millis() + wavPlayer.play("/robotsc.wav") - 200;
+  delay(3000);
+  avatar.setFace(faces[1]);
+  delay(2000);
+  avatar.setFace(faces[2]);
+  delay(2000);
+  avatar.setFace(faces[3]);
+  delay(2000);
+  avatar.setFace(faces[4]);
+  delay(2000);
+  avatar.setFace(faces[0]);
+  //avatar.setMouthOpenRatio(0.0);
 
   //口をパクパクする時間
   while (end_mouth_millis >= millis()) {
-    delay(150);
+    delay(200);
+
+    if (millis() % 7000 > 6200) {
+      // ランダムモード
+      int x = random(system_config.getServoInfo(AXIS_X)->lower_limit + 45, system_config.getServoInfo(AXIS_X)->upper_limit - 45);  // 可動範囲の下限+45〜上限-45 でランダム
+      int y = random(system_config.getServoInfo(AXIS_Y)->lower_limit, system_config.getServoInfo(AXIS_Y)->upper_limit);            // 可動範囲の下限〜上限 でランダム
+      servo.moveXY(x, y, 400);
+    }
+
+    if (millis() % 5000 > 4600) {
+      avatar.setFace(faces[face_idx]);
+      face_idx = (face_idx + 1) % num_faces;  // loop index
+    }
+
     avatar.setMouthOpenRatio(0.7);
-    delay(100);
+    delay(150);
     avatar.setMouthOpenRatio(0.0);
   }
 }
