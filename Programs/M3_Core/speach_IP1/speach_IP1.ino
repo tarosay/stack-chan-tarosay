@@ -1,8 +1,9 @@
 #include <Arduino.h>
 
 #include <WiFi.h>
-#include "Wavs.hpp"
+//#include "Wavs.hpp"
 #include "WavPlayer.hpp"
+#include "Number2Speech.hpp"
 
 #include <SD.h>
 #include <Update.h>
@@ -30,6 +31,7 @@ Face *faces[5];
 const int num_faces = sizeof(faces) / sizeof(Face *);
 int face_idx = 0;  // face index
 
+Number2Speech number2Speech(wavPlayer, avatar);
 
 #define START_DEGREE_VALUE_X 90
 #define START_DEGREE_VALUE_Y 90
@@ -111,8 +113,8 @@ void moveRandom() {
     int delay_time = random(10);
     servo.moveXY(x, y, 1000 + 100 * delay_time);
     //しゃべる
-    speachWav(wavs, sizeof(wavs));
-
+    //speachWav(wavs, sizeof(wavs));
+    spaechNum();
 
     delay(2000 + 500 * delay_time);
     if (!core_port_a) {
@@ -203,10 +205,8 @@ void setup() {
   faces[3] = new GirlyFace();
   faces[4] = new PinkDemonFace();
 
-
+  avatar.setFace(faces[2]);
   avatar.init(8);  // start drawing
-
-
 
   last_mouth_millis = millis();
   //moveRandom();
@@ -269,6 +269,8 @@ void loop() {
   delay(50);
 }
 
+
+
 void speachWav(const uint8_t *wavFile, uint32_t fileSize) {
   //口を開ける
   //avatar.setMouthOpenRatio(0.7);
@@ -305,4 +307,9 @@ void speachWav(const uint8_t *wavFile, uint32_t fileSize) {
     delay(150);
     avatar.setMouthOpenRatio(0.0);
   }
+}
+
+void spaechNum() {
+  // 数字文字列を再生
+  number2Speech.playIP("192.168.1.64", 0.5);
 }
