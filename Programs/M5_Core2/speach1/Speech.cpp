@@ -1,16 +1,15 @@
-#include "Number2Speech.hpp"
-
 #include <M5Unified.h>
+#include "Speech.hpp"
 
 // コンストラクタ
-Number2Speech::Number2Speech(WavPlayer& player, m5avatar::Avatar& avatarInstance)
+Speech::Speech(WavPlayer& player, m5avatar::Avatar& avatarInstance)
   : wavPlayer(player), avatar(avatarInstance) {}
 
 // 数字文字列を音声に変換して再生する
-void Number2Speech::play(const String& input) {
-  play(input, 0.9);
+void Speech::playNumber(const String& input) {
+  playNumber(input, 0.9);
 }
-void Number2Speech::play(const String& input, float volume) {
+void Speech::playNumber(const String& input, float volume) {
   for (size_t i = 0; i < input.length(); i++) {
     char c = input.charAt(i);
 
@@ -40,10 +39,10 @@ void Number2Speech::play(const String& input, float volume) {
     }
   }
 }
-void Number2Speech::playIP(const String& input) {
+void Speech::playIP(const String& input) {
   playIP(input, 0.9);
 }
-void Number2Speech::playIP(const String& input, float volume) {
+void Speech::playIP(const String& input, float volume) {
 
   uint32_t end_mouth_millis = millis() + wavPlayer.play("/ip.wav", volume) - 200;
   //M5_LOGI("ip.wav: %d", dut);
@@ -64,7 +63,7 @@ void Number2Speech::playIP(const String& input, float volume) {
     avatar.setMouthOpenRatio(0.0);
   }
 
-  play(input);
+  playNumber(input);
 
   end_mouth_millis = millis() + wavPlayer.play("/desu.wav", volume) - 200;
   //M5_LOGI("desu.wav: %d", dut);
