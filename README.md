@@ -45,3 +45,6 @@ Documents\Arduino\libraries\stackchan-arduino\src\Stackchan_servo.cpp
  
  class SCSCL は、シリアルサーボの制御クラスなので、PWM系のSG90を使う分には、この修正は影響ないです。
  
+ 
+ https://github.com/stack-chan/stackchan-arduino/blob/main/README.md
+ 

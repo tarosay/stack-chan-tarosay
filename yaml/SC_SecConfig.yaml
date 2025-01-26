@@ -1,0 +1,8 @@
+# 個人情報用の設定ファイル
+wifi:
+  ssid: "higashi-2f"
+  password: "hama1297noiti"
+apikey:
+    stt: "YOUR_APIKEY"       # ApiKey of SpeechToText Service
+    aiservice: "YOUR_APIKEY" # ApiKey of AIService
+    tts: "YOUR_APIKEY"       # ApiKey of TextToSpeech Service

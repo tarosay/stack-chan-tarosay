@@ -15,10 +15,12 @@ public:
   Speech(WavPlayer& player, m5avatar::Avatar& avatarInstance);
 
   // 数字文字列を音声に変換して再生する
-  void playNumber(const String& input);
+  void playIPNumber(const String& input);
+  void playIPNumber(const String& input, float volume);
   void playIP(const String& input);
-  void playNumber(const String& input, float volume);
   void playIP(const String& input, float volume);
+  void playNumber(const String& input);
+  void playNumber(const String& input, float volume);
 };
 
 #endif  // SPEECH_HPP

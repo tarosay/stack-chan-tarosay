@@ -3,7 +3,7 @@
 #include <WiFi.h>
 //#include "Wavs.hpp"
 #include "WavPlayer.hpp"
-#include "Number2Speech.hpp"
+#include "Speech.hpp"
 
 #include <SD.h>
 #include <Update.h>
@@ -31,7 +31,7 @@ Face *faces[5];
 const int num_faces = sizeof(faces) / sizeof(Face *);
 int face_idx = 0;  // face index
 
-Number2Speech number2Speech(wavPlayer, avatar);
+Speech speech(wavPlayer, avatar);
 
 #define START_DEGREE_VALUE_X 90
 #define START_DEGREE_VALUE_Y 90
@@ -199,6 +199,11 @@ void setup() {
   M5_LOGI("AXIS_X: %d", system_config.getServoInfo(AXIS_X)->pin);
   M5_LOGI("AXIS_Y: %d", system_config.getServoInfo(AXIS_Y)->pin);
 
+  // wifi
+  wifi_s*     wifi_info = system_config.getWiFiSetting();
+  M5_LOGI("SSID: %s", wifi_info->ssid.c_str());
+  M5_LOGI("Password: %s", wifi_info->password.c_str());
+
   faces[0] = avatar.getFace();  // native face
   faces[1] = new DoggyFace();
   faces[2] = new OmegaFace();
@@ -311,5 +316,5 @@ void speachWav(const uint8_t *wavFile, uint32_t fileSize) {
 
 void spaechNum() {
   // 数字文字列を再生
-  number2Speech.playIP("192.168.1.64", 0.5);
+  speech.playIP("192.168.001.055", 0.5);
 }
