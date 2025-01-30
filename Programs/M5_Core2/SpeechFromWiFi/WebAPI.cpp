@@ -3,7 +3,7 @@
 
 // コンストラクタ
 WebAPI::WebAPI(int port)
-  : server(port), serverStarted(false), fileUploaded(false) {}
+  : server(port), serverStarted(false), fileUploaded(0), restart(false), wavng(false), ongen(0) {}
 
 // WiFi接続とサーバーの初期化
 void WebAPI::begin(const char* ssid, const char* password) {
@@ -24,6 +24,29 @@ void WebAPI::begin(const char* ssid, const char* password) {
       // アップロード処理
       handleUpload();
     });
+
+  // 再起動エンドポイント
+  server.on("/restart", HTTP_GET, [this]() {
+    server.send(200, "text/plain", "Restarting...");
+    delay(1000);
+    restart = true;  // レスポンス送信後に少し待機
+    //esp_restart();  // M5Stackを再起動
+  });
+
+  server.on("/wavng", HTTP_GET, [this]() {
+    server.send(200, "text/plain", "Wav upload NG");
+    wavng = true;
+  });
+
+  // `ongen` パラメータを取得
+  server.on("/ongen", HTTP_GET, [this]() {
+    if (server.hasArg("type")) {
+      ongen = server.arg("type").toInt();  // "type" の値を取得し、整数として `ongen` に代入
+      server.send(200, "text/plain", "ongen set to: " + String(ongen));
+    } else {
+      server.send(400, "text/plain", "Missing parameter: type");
+    }
+  });
 
   // サーバースタート
   if (WiFi.status() == WL_CONNECTED) {
@@ -73,13 +96,14 @@ String WebAPI::getIPAddress() const {
 
 // "/" エンドポイント処理
 void WebAPI::handleRoot() {
-  server.send(200, "text/plain", "M5Stack Core2 is ready!");
+  server.send(200, "text/plain", "Yes, I Speak.");
+  // アップロードタイプをセット、これを1にすると/upload.wavをしゃべる
+  fileUploaded = 1;
 }
 
 // "/upload" エンドポイント処理
 void WebAPI::handleUpload() {
-  //M5_LOGI("handleUpload");
-  M5_LOGI("handleUpload called with URI: %s", server.uri().c_str());
+  //M5_LOGI("handleUpload called with URI: %s", server.uri().c_str());
 
   if (server.uri() != "/upload" || server.method() != HTTP_POST) {
     server.send(404, "text/plain", "Not Found");
@@ -87,14 +111,14 @@ void WebAPI::handleUpload() {
   }
 
   HTTPUpload& upload = server.upload();
-  M5_LOGI("Upload status: %d", upload.status);
+  //M5_LOGI("Upload status: %d", upload.status);
 
   // ファイル保存先
   const char* filePath = "/upload.wav";
   static File file;
 
   if (upload.status == UPLOAD_FILE_START) {
-    M5_LOGI("UPLOAD_FILE_START: %s", upload.filename.c_str());
+    //M5_LOGI("UPLOAD_FILE_START: %s", upload.filename.c_str());
 
     if (SD.exists(filePath)) {
       SD.remove(filePath);
@@ -102,29 +126,40 @@ void WebAPI::handleUpload() {
     file = SD.open(filePath, FILE_WRITE);
     if (!file) {
       server.send(500, "text/plain", "Failed to open file for writing");
+      fileUploaded = 2;
       return;
     }
 
   } else if (upload.status == UPLOAD_FILE_WRITE) {
-    M5_LOGI("UPLOAD_FILE_WRITE: %d bytes", upload.currentSize);
-
+    //M5_LOGI("UPLOAD_FILE_WRITE: %d bytes", upload.currentSize);
     if (file) {
       file.write(upload.buf, upload.currentSize);
     }
-
   } else if (upload.status == UPLOAD_FILE_END) {
     M5_LOGI("UPLOAD_FILE_END: Total %d bytes", upload.totalSize);
 
     if (file) {
       file.close();
-      server.send(200, "text/plain", "File uploaded successfully.");
 
-      // アップロードフラグをセット
-      fileUploaded = true;
+      file = SD.open(filePath, FILE_READ);
+      if (file) {
+        size_t filesize = file.size();
+        file.close();
+        if (filesize == 0) {
+          server.send(500, "text/plain", "Failed to save file.");
+          fileUploaded = 2;
+        } else {
+          server.send(200, "text/plain", "File uploaded successfully.");
+          fileUploaded = 1;
+        }
+      } else {
+        server.send(500, "text/plain", "Failed to save file.");
+        fileUploaded = 2;
+      }
     } else {
       server.send(500, "text/plain", "Failed to save file.");
+      fileUploaded = 2;
     }
-
   } else if (upload.status == UPLOAD_FILE_ABORTED) {
     M5_LOGI("UPLOAD_FILE_ABORTED");
     if (file) {
@@ -132,15 +167,36 @@ void WebAPI::handleUpload() {
       SD.remove(filePath);
     }
     server.send(500, "text/plain", "Upload aborted.");
+    fileUploaded = 2;
   }
 }
 
 // ファイルアップロードの状態を確認
-bool WebAPI::isFileUploaded() {
+int WebAPI::getFileUploaded() {
   return fileUploaded;
 }
 
+bool WebAPI::isReStart() {
+  return restart;
+}
+
+bool WebAPI::isWavNG() {
+  return wavng;
+}
+
 // アップロードフラグをリセット
-void WebAPI::resetFileUploadedFlag() {
-  fileUploaded = false;
+void WebAPI::resetFileUploadedType() {
+  fileUploaded = 0;
+}
+
+// アップロードフラグをリセット
+void WebAPI::resetWavNG() {
+  wavng = false;
+}
+
+int WebAPI::getOngen() {
+  return ongen;
+}
+void WebAPI::resetOngen() {
+  ongen = 0;
 }

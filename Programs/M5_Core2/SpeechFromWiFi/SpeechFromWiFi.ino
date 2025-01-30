@@ -1,7 +1,6 @@
 #include <Arduino.h>
-
 #include <WiFi.h>
-//#include "Wavs.hpp"
+
 #include "WavPlayer.hpp"
 #include "Speech.hpp"
 #include "WebAPI.hpp"
@@ -10,27 +9,20 @@
 #include <Update.h>
 #include <Ticker.h>
 #include <M5StackUpdater.h>
-#include <M5Unified.h>
+#include <M5Unified.h>  //M5Unified と M5GFXのアップデートはしてはだめ M5GFX 0.2.3 M5Unifild 0.2.2
 #include <Stackchan_system_config.h>
 #include <Stackchan_servo.h>
+
 #ifdef ARDUINO_M5STACK_CORES3
 #include <gob_unifiedButton.hpp>
 goblib::UnifiedButton unifiedButton;
 #endif
 
-int servo_offset_x = 0;  // X軸サーボのオフセット（サーボの初期位置からの+-で設定）
-int servo_offset_y = 0;  // Y軸サーボのオフセット（サーボの初期位置からの+-で設定）
-
-#include <Avatar.h>          // https://github.com/meganetaaan/m5stack-avatar
-#include "formatString.hpp"  // https://gist.github.com/GOB52/e158b689273569357b04736b78f050d6
+#include <Avatar.h>  // https://github.com/meganetaaan/m5stack-avatar
 #include <faces/FaceTemplates.hpp>
 
 using namespace m5avatar;
 Avatar avatar;
-
-Face *faces[5];
-const int num_faces = sizeof(faces) / sizeof(Face *);
-int face_idx = 0;  // face index
 
 Speech speech(wavPlayer, avatar);
 WebAPI webAPI;
@@ -44,85 +36,7 @@ WebAPI webAPI;
 StackchanSERVO servo;
 StackchanSystemConfig system_config;
 
-uint32_t mouth_wait = 2000;      // 通常時のセリフ入れ替え時間（msec）
-uint32_t last_mouth_millis = 0;  // セリフを入れ替えた時間
-bool core_port_a = false;        // Core1のPortAを使っているかどうか
-
-const char *lyrics[] = { "BtnA:MoveTo90  ", "BtnB:ServoTest  ", "BtnC:RandomMode  ", "BtnALong:AdjustMode" };
-const int lyrics_size = sizeof(lyrics) / sizeof(char *);
-int lyrics_idx = 0;
-
-void adjustOffset() {
-  // サーボのオフセットを調整するモード
-  servo_offset_x = 0;
-  servo_offset_y = 0;
-  servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 2000);
-  bool adjustX = true;
-  for (;;) {
-#ifdef ARDUINO_M5STACK_CORES3
-    unifiedButton.update();  // M5.update() よりも前に呼ぶ事
-#endif
-    M5.update();
-    if (M5.BtnA.wasPressed()) {
-      // オフセットを減らす
-      if (adjustX) {
-        servo_offset_x--;
-      } else {
-        servo_offset_y--;
-      }
-    }
-    if (M5.BtnB.pressedFor(2000)) {
-      // 調整モードを終了
-      break;
-    }
-    if (M5.BtnB.wasPressed()) {
-      // 調整モードのXとYを切り替え
-      adjustX = !adjustX;
-    }
-    if (M5.BtnC.wasPressed()) {
-      // オフセットを増やす
-      if (adjustX) {
-        servo_offset_x++;
-      } else {
-        servo_offset_y++;
-      }
-    }
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 2000);
-
-    std::string s;
-
-    if (adjustX) {
-      s = formatString("%s:%d:BtnB:X/Y", "X", servo_offset_x);
-    } else {
-      s = formatString("%s:%d:BtnB:X/Y", "Y", servo_offset_y);
-    }
-    avatar.setSpeechText(s.c_str());
-  }
-}
-
-void testServo() {
-  for (int i = 0; i < 2; i++) {
-    avatar.setSpeechText("X center -> left  ");
-    servo.moveX(system_config.getServoInfo(AXIS_X)->lower_limit, 1000);
-    avatar.setSpeechText("X left -> right  ");
-    servo.moveX(system_config.getServoInfo(AXIS_X)->upper_limit, 3000);
-    avatar.setSpeechText("X right -> center  ");
-    servo.moveX(system_config.getServoInfo(AXIS_X)->start_degree, 1000);
-    avatar.setSpeechText("Y center -> lower  ");
-    servo.moveY(system_config.getServoInfo(AXIS_Y)->lower_limit, 1000);
-    avatar.setSpeechText("Y lower -> upper  ");
-    servo.moveY(system_config.getServoInfo(AXIS_Y)->upper_limit, 1000);
-    avatar.setSpeechText("Initial Pos.");
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
-  }
-}
-
-void mumumuServo() {
-  for (int i = 0; i < 30; i++) {
-    servo.moveX(120, 250);
-    servo.moveX(240, 250);
-  }
-}
+bool core_port_a = false;  // Core1のPortAを使っているかどうか
 
 void setup() {
   //Serial.begin(115200);  // シリアル出力初期設定
@@ -173,16 +87,8 @@ void setup() {
   M5_LOGI("AXIS_X: %d", system_config.getServoInfo(AXIS_X)->pin);
   M5_LOGI("AXIS_Y: %d", system_config.getServoInfo(AXIS_Y)->pin);
 
-  faces[0] = avatar.getFace();  // native face
-  faces[1] = new DoggyFace();
-  faces[2] = new OmegaFace();
-  faces[3] = new GirlyFace();
-  faces[4] = new PinkDemonFace();
-
-  avatar.setFace(faces[0]);
+  avatar.setFace(avatar.getFace());
   avatar.init(8);  // start drawing
-
-  last_mouth_millis = millis();
 
   speech.playWav("/wav/wificonnect.wav", 0.5);
   // WebAPIの初期化
@@ -200,40 +106,76 @@ void setup() {
     delay(1000);
     speech.playIP(webAPI.getIPAddress(), 0.5);
   }
-  //moveRandom();
-  //testServo();
 }
 
 void loop() {
   webAPI.handleClient();
 
-  if (webAPI.isFileUploaded()) {
-    M5_LOGI("isFileUploaded==true");
+  if (webAPI.getFileUploaded() == 1) {
+    FaceUp();
     speech.playWav("/upload.wav", 0.5);
-    webAPI.resetFileUploadedFlag();
+    webAPI.resetFileUploadedType();
+    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 
+  if (webAPI.isReStart()) {
+    FaceUp();
+    speech.playWav("/wav/restart.wav", 0.5);
+    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+    delay(1000);
+    esp_restart();  // M5Stackを再起動
+  }
+
+  if (webAPI.isWavNG()) {
+    FaceUp();
+    speech.playWav("/wav/wavng.wav", 0.5);
+    webAPI.resetWavNG();
+    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+  }
+
+  int ongen = webAPI.getOngen();
+  if (ongen > 0) {
+    FaceUp();
+    if (ongen == 1) {
+      speech.playWav("/wav/motoko1.wav", 0.5);
+    } else if (ongen == 2) {
+      speech.playWav("/wav/motoko2.wav", 0.5);
+    } else if (ongen == 3) {
+      speech.playWav("/wav/jorin1.wav", 0.5);
+    } else if (ongen == 4) {
+      speech.playWav("/wav/jorin2.wav", 0.5);
+    }
+    webAPI.resetOngen();
+    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+  }
 
 #ifdef ARDUINO_M5STACK_CORES3
   unifiedButton.update();  // M5.update() よりも前に呼ぶ事
 #endif
   M5.update();
 
-  if (M5.BtnA.pressedFor(2000)) {
-    // サーボのオフセットを調整するモードへ
-    adjustOffset();
-  } else if (M5.BtnA.wasPressed()) {
+  if (M5.BtnA.wasPressed()) {
     speech.playWav("/upload.wav", 0.5);
   }
 
   if (M5.BtnB.wasSingleClicked()) {
-  } else if (M5.BtnB.wasDoubleClicked()) {
+    speech.playIP(webAPI.getIPAddress(), 0.5);
   }
 
-  if (M5.BtnC.pressedFor(5000)) {
-  } else if (M5.BtnC.wasPressed()) {
+  if (M5.BtnC.wasPressed()) {
   }
 
   // delayを50msec程度入れないとCoreS3でバッテリーレベルと充電状態がおかしくなる。
-  delay(50);
+  delay(25);
+}
+
+void FaceUp() {
+  //ランダムに左を向く
+  int x = random(system_config.getServoInfo(AXIS_X)->lower_limit + 100, system_config.getServoInfo(AXIS_X)->upper_limit - 45);  // 可動範囲の下限+45〜上限-45 でランダム
+  //ランダムに上を向く
+  int y = random(system_config.getServoInfo(AXIS_Y)->lower_limit + 35, system_config.getServoInfo(AXIS_Y)->upper_limit);  // 可動範囲の下限〜上限 でランダム
+  int delay_time = random(10);
+  servo.moveXY(x, y, 800 + 100 * delay_time);
+  //delay(3000);
+  //M5_LOGI("x: %d", x);
 }
