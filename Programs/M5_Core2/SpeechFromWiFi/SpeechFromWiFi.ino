@@ -113,14 +113,14 @@ void loop() {
 
   if (webAPI.getFileUploaded() == 1) {
     FaceUp();
-    speech.playWav("/upload.wav", 0.5);
+    speech.playWav("/upload.wav", webAPI.getVolume());
     webAPI.resetFileUploadedType();
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 
   if (webAPI.isReStart()) {
     FaceUp();
-    speech.playWav("/wav/restart.wav", 0.5);
+    speech.playWav("/wav/restart.wav", webAPI.getVolume());
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
     delay(1000);
     esp_restart();  // M5Stackを再起動
@@ -128,7 +128,7 @@ void loop() {
 
   if (webAPI.isWavNG()) {
     FaceUp();
-    speech.playWav("/wav/wavng.wav", 0.5);
+    speech.playWav("/wav/wavng.wav", webAPI.getVolume());
     webAPI.resetWavNG();
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
@@ -137,13 +137,13 @@ void loop() {
   if (ongen > 0) {
     FaceUp();
     if (ongen == 1) {
-      speech.playWav("/wav/motoko1.wav", 0.5);
+      speech.playWav("/wav/motoko1.wav", webAPI.getVolume());
     } else if (ongen == 2) {
-      speech.playWav("/wav/motoko2.wav", 0.5);
+      speech.playWav("/wav/motoko2.wav", webAPI.getVolume());
     } else if (ongen == 3) {
-      speech.playWav("/wav/jorin1.wav", 0.5);
+      speech.playWav("/wav/jorin1.wav", webAPI.getVolume());
     } else if (ongen == 4) {
-      speech.playWav("/wav/jorin2.wav", 0.5);
+      speech.playWav("/wav/jorin2.wav", webAPI.getVolume());
     }
     webAPI.resetOngen();
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
@@ -155,11 +155,11 @@ void loop() {
   M5.update();
 
   if (M5.BtnA.wasPressed()) {
-    speech.playWav("/upload.wav", 0.5);
+    speech.playWav("/upload.wav", webAPI.getVolume());
   }
 
   if (M5.BtnB.wasSingleClicked()) {
-    speech.playIP(webAPI.getIPAddress(), 0.5);
+    speech.playIP(webAPI.getIPAddress(), webAPI.getVolume());
   }
 
   if (M5.BtnC.wasPressed()) {

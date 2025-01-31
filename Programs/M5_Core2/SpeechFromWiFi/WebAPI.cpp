@@ -3,7 +3,8 @@
 
 // コンストラクタ
 WebAPI::WebAPI(int port)
-  : server(port), serverStarted(false), fileUploaded(0), restart(false), wavng(false), ongen(0) {}
+  : server(port), serverStarted(false), fileUploaded(0), restart(false), wavng(false), ongen(0),
+    spVolume(0.4f) {}
 
 // WiFi接続とサーバーの初期化
 void WebAPI::begin(const char* ssid, const char* password) {
@@ -45,6 +46,16 @@ void WebAPI::begin(const char* ssid, const char* password) {
       server.send(200, "text/plain", "ongen set to: " + String(ongen));
     } else {
       server.send(400, "text/plain", "Missing parameter: type");
+    }
+  });
+
+  // 音量設定
+  server.on("/volume", HTTP_GET, [this]() {
+    if (server.hasArg("value")) {
+      spVolume = server.arg("value").toFloat();
+      server.send(200, "text/plain", "volume set to: " + String(spVolume));
+    } else {
+      server.send(400, "text/plain", "Missing parameter: value");
     }
   });
 
@@ -199,4 +210,8 @@ int WebAPI::getOngen() {
 }
 void WebAPI::resetOngen() {
   ongen = 0;
+}
+
+float WebAPI::getVolume() {
+  return spVolume;
 }

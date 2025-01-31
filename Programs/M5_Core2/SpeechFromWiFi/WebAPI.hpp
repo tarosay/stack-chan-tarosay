@@ -14,6 +14,7 @@ private:
   bool restart;
   bool wavng;
   int ongen;
+  float spVolume;
 
   void handleRoot();
   void handleUpload();
@@ -33,6 +34,7 @@ public:
   void resetWavNG();
   int getOngen();
   void resetOngen();
+  float getVolume();
 };
 
 #endif  // WEBAPI_HPP
