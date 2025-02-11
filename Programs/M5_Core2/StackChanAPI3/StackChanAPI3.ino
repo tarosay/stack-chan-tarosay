@@ -4,6 +4,7 @@
 #include "WavPlayer.hpp"
 #include "Speech.hpp"
 #include "WebAPI.hpp"
+#include "Mp3ToWav.hpp"
 
 #include <SD.h>
 #include <Update.h>
@@ -26,6 +27,7 @@ Avatar avatar;
 
 Speech speech(wavPlayer, avatar);
 WebAPI webAPI;
+Mp3ToWav mp3ToWav;  // mp3をwavに変換
 
 #define START_DEGREE_VALUE_X 90
 #define START_DEGREE_VALUE_Y 90
@@ -39,12 +41,11 @@ StackchanSystemConfig system_config;
 bool core_port_a = false;  // Core1のPortAを使っているかどうか
 
 void setup() {
-  //Serial.begin(115200);  // シリアル出力初期設定
+  Serial.begin(115200);  // シリアル出力初期設定
 
   auto cfg = M5.config();  // 設定用の情報を抽出
   //cfg.output_power = true;    // Groveポートの5V出力をする／しない（TakaoBase用）
   M5.begin(cfg);  // M5Stackをcfgの設定で初期化
-  //mp3Player.begin();
   //wavPlayer.begin();
 
 #ifdef ARDUINO_M5STACK_CORES3
@@ -120,10 +121,10 @@ void loop() {
   webAPI.handleClient();
 
   if (webAPI.getFileUploaded() == 1) {
+    mp32wav("/upload.mp3", "/upload.wav");
+
     FaceUp();
-    //avatar.init(8);  // start drawing
     speech.playSound("/upload.wav", webAPI.getVolume());
-    //speech.playSound("/upload.mp3", webAPI.getVolume());
     webAPI.resetFileUploadedType();
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
@@ -173,6 +174,7 @@ void loop() {
   }
 
   if (M5.BtnC.wasPressed()) {
+    listDir(SD, "/", 0);
   }
 
   // delayを50msec程度入れないとCoreS3でバッテリーレベルと充電状態がおかしくなる。
@@ -180,6 +182,7 @@ void loop() {
 }
 
 void FaceUp() {
+  //return;
   //ランダムに左を向く
   int x = random(system_config.getServoInfo(AXIS_X)->lower_limit + 100, system_config.getServoInfo(AXIS_X)->upper_limit - 45);  // 可動範囲の下限+45〜上限-45 でランダム
   //ランダムに上を向く
@@ -188,4 +191,43 @@ void FaceUp() {
   servo.moveXY(x, y, 800 + 100 * delay_time);
   //delay(3000);
   //M5_LOGI("x: %d", x);
+}
+
+void mp32wav(const char* mp3Path, const char* wavPath) {
+  while (true) {
+    if (mp3ToWav.ConvertWav(mp3Path, wavPath)) {
+      break;
+    }
+    M5_LOGI("CONVERT Failed %s to %s", mp3Path, wavPath);
+    //listDir(SD, "/", 0);
+  }
+  M5_LOGI("FINISHED convert %s to %s", mp3Path, wavPath);
+  //listDir(SD, "/", 0);
+}
+
+void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
+  M5_LOGI("Listing directory: %s", dirname);
+
+  File root = fs.open(dirname);
+  if (!root) {
+    M5_LOGI("Failed to open directory");
+    return;
+  }
+  if (!root.isDirectory()) {
+    M5_LOGI("Not a directory");
+    return;
+  }
+
+  File file = root.openNextFile();
+  while (file) {
+    if (file.isDirectory()) {
+      M5_LOGI("DIR : %s", file.name());
+      if (levels) {
+        listDir(fs, file.name(), levels - 1);
+      }
+    } else {
+      M5_LOGI("FILE: %s  SIZE: %d bytes", file.name(), file.size());
+    }
+    file = root.openNextFile();
+  }
 }

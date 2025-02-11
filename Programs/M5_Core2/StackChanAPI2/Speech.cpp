@@ -1,5 +1,6 @@
 #include <M5Unified.h>
 #include "Speech.hpp"
+
 //#include "esp_spiram.h"
 
 // コンストラクタ
@@ -137,7 +138,6 @@ void Speech::playSound(const String& input, float volume) {
     wavPlayer.play(input, volume);
     //口パクパク
     pakupaku();
-  } else if (input.endsWith(".mp3")) {
 
   } else {
     M5_LOGI("File Not open %s", input.c_str());
