@@ -16,11 +16,21 @@ private:
   int ongen;
   float spVolume;
   String uploadfilename;
+  bool isMove;
 
   void handleRoot();
   void handleUpload();
 
 public:
+  struct MoveXY {
+    int x;
+    int y;
+    // コンストラクタで初期値を設定
+    MoveXY()
+      : x(0), y(0) {}
+  };
+  MoveXY moveXY;  // 構造体の変数を用意
+
   WebAPI(int port = 80);
 
   void begin(const char* ssid, const char* password);
@@ -37,6 +47,8 @@ public:
   int getOngen();
   void resetOngen();
   float getVolume();
+  MoveXY getMoveXY();
+  bool getIsMove();
 };
 
 #endif  // WEBAPI_HPP

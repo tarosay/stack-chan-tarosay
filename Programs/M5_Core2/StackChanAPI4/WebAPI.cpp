@@ -4,7 +4,8 @@
 // コンストラクタ
 WebAPI::WebAPI(int port)
   : server(port), serverStarted(false), fileUploaded(0), restart(false), wavng(false), ongen(0),
-    spVolume(0.4f) {}
+    spVolume(0.4f),
+    isMove(false) {}
 
 // WiFi接続とサーバーの初期化
 void WebAPI::begin(const char* ssid, const char* password) {
@@ -57,6 +58,22 @@ void WebAPI::begin(const char* ssid, const char* password) {
     } else {
       server.send(400, "text/plain", "Missing parameter: value");
     }
+  });
+
+  // X,Yサーボモータ回転
+  server.on("/move", HTTP_GET, [this]() {
+    int x = 0, y = 0;
+    // クエリパラメータを取得
+    if (server.hasArg("x")) {
+      x = server.arg("x").toInt();
+    }
+    if (server.hasArg("y")) {
+      y = server.arg("y").toInt();
+    }
+    moveXY.x = x;
+    moveXY.y = y;
+    isMove = true;
+    server.send(200, "text/plain", "move set to: (" + String(x) + ", " + String(y) + ")");
   });
 
   // サーバースタート
@@ -231,4 +248,12 @@ void WebAPI::resetOngen() {
 
 float WebAPI::getVolume() {
   return spVolume;
+}
+
+WebAPI::MoveXY WebAPI::getMoveXY() {
+  isMove = false;  // 値を取得後、リセットする場合
+  return moveXY;
+}
+bool WebAPI::getIsMove() {
+  return isMove;
 }

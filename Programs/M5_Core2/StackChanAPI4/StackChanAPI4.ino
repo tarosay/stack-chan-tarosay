@@ -179,6 +179,13 @@ void loop() {
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 
+  if (webAPI.getIsMove()) {
+    WebAPI::MoveXY move = webAPI.getMoveXY();
+    int x = system_config.getServoInfo(AXIS_X)->start_degree + move.x;
+    int y = system_config.getServoInfo(AXIS_Y)->start_degree + move.y;
+    FaceUp(x, y);
+  }
+
 #ifdef ARDUINO_M5STACK_CORES3
   unifiedButton.update();  // M5.update() よりも前に呼ぶ事
 #endif
@@ -201,15 +208,22 @@ void loop() {
 }
 
 void FaceUp() {
-  //return;
+  M5_LOGI("start x: %d, start y: %d", system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree);
   //ランダムに左を向く
-  int x = random(system_config.getServoInfo(AXIS_X)->lower_limit + 100, system_config.getServoInfo(AXIS_X)->upper_limit - 45);  // 可動範囲の下限+45〜上限-45 でランダム
+  int x = random(system_config.getServoInfo(AXIS_X)->start_degree + 10, system_config.getServoInfo(AXIS_X)->start_degree + 45);  // 可動範囲の真ん中+10〜上限-45 でランダム
   //ランダムに上を向く
-  int y = random(system_config.getServoInfo(AXIS_Y)->lower_limit + 35, system_config.getServoInfo(AXIS_Y)->upper_limit);  // 可動範囲の下限〜上限 でランダム
+  int y = random(system_config.getServoInfo(AXIS_Y)->start_degree - 35, system_config.getServoInfo(AXIS_Y)->start_degree);  // 可動範囲の下限+35〜真ん中 でランダム
+  M5_LOGI("x: %d, y: %d", x, y);
+  FaceUp(x, y);
+}
+void FaceUp(int x, int y) {
+  x = x < system_config.getServoInfo(AXIS_X)->lower_limit ? system_config.getServoInfo(AXIS_X)->lower_limit : x;
+  x = x > system_config.getServoInfo(AXIS_X)->upper_limit ? system_config.getServoInfo(AXIS_X)->upper_limit : x;
+  y = y < system_config.getServoInfo(AXIS_Y)->lower_limit ? system_config.getServoInfo(AXIS_Y)->lower_limit : y;
+  y = y > system_config.getServoInfo(AXIS_Y)->upper_limit ? system_config.getServoInfo(AXIS_Y)->upper_limit : y;
+
   int delay_time = random(10);
   servo.moveXY(x, y, 800 + 100 * delay_time);
-  //delay(3000);
-  M5_LOGI("x: %d, y: %d", x, y);
 }
 
 void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
