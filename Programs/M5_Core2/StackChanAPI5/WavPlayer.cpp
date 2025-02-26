@@ -99,17 +99,23 @@ bool WavPlayer::isPlaying() {
 }
 
 void WavPlayer::play(const String &wavFilename) {
-  if (fileSD) {
-    delete fileSD;
-    fileSD = nullptr;
-  }
+  for (int i = 0; i < 8; i++) {
+    if (fileSD) {
+      delete fileSD;
+      fileSD = nullptr;
+    }
 
-  fileSD = new AudioFileSourceSD(wavFilename.c_str());
+    fileSD = new AudioFileSourceSD(wavFilename.c_str());
 
-  // 再生を開始
-  if (!wav->begin(fileSD, out)) {
-    //Serial.printf("Failed to restart playback\n");
-    return;
+    // 再生を開始
+    if (wav->begin(fileSD, out)) {
+      break;
+    } else {
+      Serial.printf("Failed to restart playback\n");
+      delay(250);
+      wav->stop();
+      continue;
+    }
   }
 }
 

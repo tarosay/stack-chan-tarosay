@@ -101,7 +101,7 @@ bool Mp3ToWav::ConvertWav(const char *mp3Path, const char *wavPath) {
       file.seek(fileSize);
       file.flush();
       file.close();
-      Serial.println(fileSize);
+      //Serial.println(fileSize);
       convSuccess = true;
       break;
     }

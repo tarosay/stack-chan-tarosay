@@ -38,6 +38,10 @@ Mp3ToWav mp3ToWav;  // mp3をwavに変換
 StackchanSERVO servo;
 StackchanSystemConfig system_config;
 
+#ifdef ARDUINO_M5STACK_CORE
+ColorPalette* color_palette;
+#endif
+
 bool core_port_a = false;  // Core1のPortAを使っているかどうか
 
 void setup() {
@@ -55,7 +59,15 @@ void setup() {
   M5.Log.setLogLevel(m5::log_target_serial, ESP_LOG_INFO);
   M5.Log.setEnableColor(m5::log_target_serial, false);
   M5_LOGI("Hello World");
-  SD.begin(GPIO_NUM_4, SPI, 25000000);
+  //SD.begin(GPIO_NUM_4, SPI, 25000000);
+
+  // **M5Unified を使用する場合、SD.begin() のみでOK**
+  if (!SD.begin(GPIO_NUM_4, SPI, 25000000)) {
+    M5_LOGI("[ERROR] SDカードの初期化に失敗しました");
+    while (true)
+      ;
+  }
+
   delay(2000);
 
   system_config.loadConfig(SD, "");
@@ -89,7 +101,17 @@ void setup() {
   M5_LOGI("AXIS_X: %d", system_config.getServoInfo(AXIS_X)->pin);
   M5_LOGI("AXIS_Y: %d", system_config.getServoInfo(AXIS_Y)->pin);
 
+#ifdef ARDUINO_M5STACK_CORE
+  avatar.setFace(new OmegaFace());
+  color_palette = new ColorPalette();
+  color_palette->set(COLOR_PRIMARY, TFT_BLACK);
+  color_palette->set(COLOR_SECONDARY, TFT_BLUE);
+  color_palette->set(COLOR_BACKGROUND, TFT_WHITE);
+  avatar.setColorPalette(*color_palette);
+#else
   avatar.setFace(avatar.getFace());
+#endif
+
   avatar.init(8);  // start drawing
 
   wavPlayer.begin();
@@ -214,15 +236,16 @@ void loop() {
 }
 
 void FaceUp() {
-  M5_LOGI("start x: %d, start y: %d", system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree);
+  //M5_LOGI("start x: %d, start y: %d", system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree);
   //ランダムに左を向く
   int x = random(system_config.getServoInfo(AXIS_X)->start_degree + 10, system_config.getServoInfo(AXIS_X)->start_degree + 45);  // 可動範囲の真ん中+10〜上限-45 でランダム
   //ランダムに上を向く
   int y = random(system_config.getServoInfo(AXIS_Y)->start_degree - 35, system_config.getServoInfo(AXIS_Y)->start_degree);  // 可動範囲の下限+35〜真ん中 でランダム
-  M5_LOGI("x: %d, y: %d", x, y);
+  //M5_LOGI("x: %d, y: %d", x, y);
   FaceUp(x, y);
 }
 void FaceUp(int x, int y) {
+  return;
   x = x < system_config.getServoInfo(AXIS_X)->lower_limit ? system_config.getServoInfo(AXIS_X)->lower_limit : x;
   x = x > system_config.getServoInfo(AXIS_X)->upper_limit ? system_config.getServoInfo(AXIS_X)->upper_limit : x;
   y = y < system_config.getServoInfo(AXIS_Y)->lower_limit ? system_config.getServoInfo(AXIS_Y)->lower_limit : y;
