@@ -45,6 +45,29 @@ Documents\Arduino\libraries\stackchan-arduino\src\Stackchan_servo.cpp
  
  class SCSCL は、シリアルサーボの制御クラスなので、PWM系のSG90を使う分には、この修正は影響ないです。
  
+ 新たに、stackchan-arduino by Takao Akari v0.03で、コンパイルエラーが発生
+ 対策、SG90サーボには関係ないので、
+Documents\Arduino\libraries\stackchan-arduino\src\Stackchan_servo.cpp
+にある turnXの2箇所の「_sc.PWMMode」をコメントアウトした。
+ // @uint32_t speed 0〜1000
+void StackchanSERVO::turnX(uint32_t speed, bool is_cw, uint32_t millis_for_move) {
+    if (speed >= 1000) {
+      speed = 1000;
+    }
+    if (is_cw) {
+      speed += 1000; // 逆回転時は+1000
+    }
+    Serial.printf("speed: %d\n", speed);
+    //_sc.PWMMode(1, true); // 回転モード
+    _isMoving = true;
+    _sc.WritePWM(1, speed);
+    vTaskDelay(millis_for_move/portTICK_PERIOD_MS);
+    _isMoving = false;
+    //_sc.PWMMode(1, false); // 位置決めモードへ戻す 
+  return;
+}
+
+ 
  
  https://github.com/stack-chan/stackchan-arduino/blob/main/README.md
  

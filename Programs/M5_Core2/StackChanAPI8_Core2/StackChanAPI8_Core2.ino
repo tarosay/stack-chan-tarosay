@@ -22,8 +22,7 @@ goblib::UnifiedButton unifiedButton;
 #include "Mp3ToWav.hpp"
 
 using namespace m5avatar;
-Avatar* avatar = new Avatar();                   // ポインタに変更
-Speech* speech = new Speech(wavPlayer, avatar);  // avatar を確保した後で Speech を作成
+Avatar* avatar = new Avatar();  // ポインタに変更
 
 WebAPI webAPI;
 Mp3ToWav mp3ToWav;  // mp3をwavに変換
@@ -40,6 +39,9 @@ StackchanSystemConfig system_config;
 #ifdef ARDUINO_M5STACK_CORE
 ColorPalette* color_palette;
 #endif
+
+Speech* speech = new Speech(wavPlayer, avatar, servo, system_config);  // avatar を確保した後で Speech を作成
+
 
 bool core_port_a = false;  // Core1のPortAを使っているかどうか
 
@@ -97,15 +99,16 @@ void setup() {
   M5_LOGI("AXIS_X: %d", system_config.getServoInfo(AXIS_X)->pin);
   M5_LOGI("AXIS_Y: %d", system_config.getServoInfo(AXIS_Y)->pin);
 
+#ifdef ARDUINO_M5STACK_CORE
   avatar->setFace(new OmegaFace());
   color_palette = new ColorPalette();
   color_palette->set(COLOR_PRIMARY, TFT_BLACK);
   color_palette->set(COLOR_SECONDARY, TFT_BLUE);
   color_palette->set(COLOR_BACKGROUND, TFT_WHITE);
   avatar->setColorPalette(*color_palette);
-
-  //avatar->setFace(avatar->getFace());
-
+#else
+  avatar->setFace(avatar->getFace());
+#endif
 
   avatar->init(8);  // start drawing
 
@@ -219,6 +222,53 @@ void loop() {
 
     FaceUp(x, y);
     speech->playSound(wavFilenameStr, webAPI.getVolume());
+    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+  }
+
+  //歌う
+  if (webAPI.getIsSing()) {
+    unsigned long change = 1;  //10秒毎に見る方向を変える
+    int x, y;
+    String wavFilenameStr = String(webAPI.getWavFilename());
+    //歌スタート
+    wavPlayer.play(wavFilenameStr, webAPI.getVolume());
+    //10秒待つ 前奏のイメージ
+    delay(7000);
+    //口パクパク開始
+    while (wavPlayer.isPlaying()) {
+      //顔を右、前、左、前、という風に向きを変える
+      if (change == 0 || change == 2) {
+        //前
+        x = 90;
+      } else if (change == 1) {
+        //右
+        x = random(system_config.getServoInfo(AXIS_X)->start_degree - 50, system_config.getServoInfo(AXIS_X)->start_degree - 15);
+      } else {
+        //左
+        x = random(system_config.getServoInfo(AXIS_X)->start_degree + 15, system_config.getServoInfo(AXIS_X)->start_degree + 50);
+      }
+      y = random(system_config.getServoInfo(AXIS_Y)->start_degree - 45, system_config.getServoInfo(AXIS_Y)->start_degree);
+      x = x < system_config.getServoInfo(AXIS_X)->lower_limit ? system_config.getServoInfo(AXIS_X)->lower_limit : x;
+      x = x > system_config.getServoInfo(AXIS_X)->upper_limit ? system_config.getServoInfo(AXIS_X)->upper_limit : x;
+      y = y < system_config.getServoInfo(AXIS_Y)->lower_limit ? system_config.getServoInfo(AXIS_Y)->lower_limit : y;
+      y = y > system_config.getServoInfo(AXIS_Y)->upper_limit ? system_config.getServoInfo(AXIS_Y)->upper_limit : y;
+      servo.moveXY(x, y, 300);
+      change++;
+      change = change > 3 ? 0 : change;
+
+      //20回パクパクしたら10秒間パクパクしていることになる
+      for (int i = 0; i < 30; i++) {
+        avatar->setMouthOpenRatio(0.0);  //口を閉じる
+        delay(100);
+        avatar->setMouthOpenRatio(0.7);  //口を7割開ける
+        delay(200);
+        if (wavPlayer.isPlaying() == false) {
+          break;
+        }
+      }
+    }
+    avatar->setMouthOpenRatio(0.0);  //口を閉じる
+    //正面を向く
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 

@@ -20,6 +20,13 @@ goblib::UnifiedButton unifiedButton;
 #include "Speech.hpp"
 #include "WebAPI.hpp"
 #include "Mp3ToWav.hpp"
+#include "ScreenCapture.hpp"
+#include "motoko.hpp"
+#include "jorin.hpp"
+#include "motoko1.hpp"
+#include "motoko2.hpp"
+#include "jorin1.hpp"
+#include "jorin2.hpp"
 
 using namespace m5avatar;
 Avatar* avatar = new Avatar();                   // ポインタに変更
@@ -56,6 +63,7 @@ void setup() {
   M5.Log.setLogLevel(m5::log_target_display, ESP_LOG_NONE);
   M5.Log.setLogLevel(m5::log_target_serial, ESP_LOG_INFO);
   M5.Log.setEnableColor(m5::log_target_serial, false);
+  //M5_LOGI("Hello World");
 
   // **M5Unified を使用する場合、SD.begin() のみでOK**
   if (!SD.begin(GPIO_NUM_4, SPI, 25000000)) {
@@ -97,15 +105,16 @@ void setup() {
   M5_LOGI("AXIS_X: %d", system_config.getServoInfo(AXIS_X)->pin);
   M5_LOGI("AXIS_Y: %d", system_config.getServoInfo(AXIS_Y)->pin);
 
+#ifdef ARDUINO_M5STACK_CORE
   avatar->setFace(new OmegaFace());
   color_palette = new ColorPalette();
   color_palette->set(COLOR_PRIMARY, TFT_BLACK);
   color_palette->set(COLOR_SECONDARY, TFT_BLUE);
   color_palette->set(COLOR_BACKGROUND, TFT_WHITE);
   avatar->setColorPalette(*color_palette);
-
-  //avatar->setFace(avatar->getFace());
-
+#else
+  avatar->setFace(avatar->getFace());
+#endif
 
   avatar->init(8);  // start drawing
 
@@ -189,19 +198,37 @@ void loop() {
   int ongen = webAPI.getOngen();
   if (ongen > 0) {
     FaceUp();
+    speech->setPakuPaku(false);
+    avatar->suspend();
 
     if (ongen == 1) {
-      speech->playSound("/wav/motoko1.wav", webAPI.getVolume());
+      M5.Lcd.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, motokos);
+      wavPlayer.play(motoko1s, sizeof(motoko1s));
     } else if (ongen == 2) {
-      speech->playSound("/wav/motoko2.wav", webAPI.getVolume());
+      M5.Lcd.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, motokos);
+      wavPlayer.play(motoko2s, sizeof(motoko2s));
     } else if (ongen == 3) {
-      speech->playSound("/wav/jorin1.wav", webAPI.getVolume());
+      M5.Lcd.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, jorins);
+      wavPlayer.play(jorin1s, sizeof(jorin1s));
     } else if (ongen == 4) {
-      speech->playSound("/wav/jorin2.wav", webAPI.getVolume());
+      M5.Lcd.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, jorins);
+      wavPlayer.play(jorin2s, sizeof(jorin2s));
+    }
+
+    if (ongen <= 4) {
+      while (wavPlayer.isPlaying()) {
+        delay(100);
+      }
     }
 
     webAPI.resetOngen();
+
+    // 画面をクリアしてアバターを再開
+    M5.Lcd.fillScreen(TFT_BLACK);
+    avatar->resume();
+
     servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+    speech->setPakuPaku(true);
   }
 
   if (webAPI.getIsMove()) {
@@ -209,17 +236,6 @@ void loop() {
     int x = system_config.getServoInfo(AXIS_X)->start_degree + move.x;
     int y = system_config.getServoInfo(AXIS_Y)->start_degree + move.y;
     FaceUp(x, y);
-  }
-
-  if (webAPI.getIsSpeech()) {
-    WebAPI::MoveXY move = webAPI.getMoveXY();
-    int x = system_config.getServoInfo(AXIS_X)->start_degree + move.x;
-    int y = system_config.getServoInfo(AXIS_Y)->start_degree + move.y;
-    String wavFilenameStr = String(webAPI.getWavFilename());
-
-    FaceUp(x, y);
-    speech->playSound(wavFilenameStr, webAPI.getVolume());
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 
 #ifdef ARDUINO_M5STACK_CORES3
