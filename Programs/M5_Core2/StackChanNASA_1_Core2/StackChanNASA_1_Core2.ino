@@ -149,11 +149,11 @@ void loop() {
       avatar->stop();
 
       if (!mp3ToWav.ConvertWav("/upload.mp3", "/upload.wav")) {
-        FaceUp();
+        //FaceUp();
         speech->playSound("/wav/wavfilefail.wav", webAPI.getVolume());
         delay(1000);
         speech->playSound("/wav/saikido.wav", webAPI.getVolume());
-        servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+        //servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
         delay(1000);
         esp_restart();  // M5Stackを再起動    speech->playSound("/upload.wav", webAPI.getVolume());
       }
@@ -161,51 +161,51 @@ void loop() {
       // アバターを再開
       avatar->start(8);
     }
-    FaceUp();
+    //FaceUp();
     speech->playSound("/upload.wav", webAPI.getVolume());
     webAPI.resetFileUploadedType();
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+    //servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 
   if (webAPI.getFileUploaded() == 100) {
-    FaceUp();
+    //FaceUp();
     speech->playSound("/upload.wav", webAPI.getVolume());
     webAPI.resetFileUploadedType();
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+    //servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 
   if (webAPI.isReStart()) {
-    FaceUp();
+    //FaceUp();
     speech->playSound("/wav/restart.wav", webAPI.getVolume());
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+    //servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
     delay(1000);
     esp_restart();  // M5Stackを再起動
   }
 
   if (webAPI.isWavNG()) {
-    FaceUp();
+    //FaceUp();
     speech->playSound("/wav/wavng.wav", webAPI.getVolume());
     webAPI.resetWavNG();
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+    //servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
   }
 
-  int ongen = webAPI.getOngen();
-  if (ongen > 0) {
-    FaceUp();
+  // int ongen = webAPI.getOngen();
+  // if (ongen > 0) {
+  //   FaceUp();
 
-    if (ongen == 1) {
-      speech->playSound("/wav/motoko1.wav", webAPI.getVolume());
-    } else if (ongen == 2) {
-      speech->playSound("/wav/motoko2.wav", webAPI.getVolume());
-    } else if (ongen == 3) {
-      speech->playSound("/wav/jorin1.wav", webAPI.getVolume());
-    } else if (ongen == 4) {
-      speech->playSound("/wav/jorin2.wav", webAPI.getVolume());
-    }
+  //   if (ongen == 1) {
+  //     speech->playSound("/wav/motoko1.wav", webAPI.getVolume());
+  //   } else if (ongen == 2) {
+  //     speech->playSound("/wav/motoko2.wav", webAPI.getVolume());
+  //   } else if (ongen == 3) {
+  //     speech->playSound("/wav/jorin1.wav", webAPI.getVolume());
+  //   } else if (ongen == 4) {
+  //     speech->playSound("/wav/jorin2.wav", webAPI.getVolume());
+  //   }
 
-    webAPI.resetOngen();
-    servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
-  }
+  //   webAPI.resetOngen();
+  //   servo.moveXY(system_config.getServoInfo(AXIS_X)->start_degree, system_config.getServoInfo(AXIS_Y)->start_degree, 1000);
+  // }
 
   if (webAPI.getIsMove()) {
     WebAPI::MoveXY move = webAPI.getMoveXY();
@@ -253,6 +253,7 @@ void loop() {
 }
 
 void FaceUp() {
+  return;
   //ランダムに左を向く
   int x = random(system_config.getServoInfo(AXIS_X)->start_degree + 10, system_config.getServoInfo(AXIS_X)->start_degree + 45);  // 可動範囲の真ん中+10〜上限-45 でランダム
   //ランダムに上を向く
