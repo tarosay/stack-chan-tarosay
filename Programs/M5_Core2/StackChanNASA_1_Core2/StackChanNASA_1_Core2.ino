@@ -3,7 +3,7 @@
 #include <SD.h>
 #include <Update.h>
 #include <Ticker.h>
-//#include <M5StackUpdater.h>
+#include <M5StackUpdater.h>
 #include <M5Unified.h>
 #include <Stackchan_system_config.h>
 #include <Stackchan_servo.h>
@@ -22,8 +22,7 @@ goblib::UnifiedButton unifiedButton;
 #include "Mp3ToWav.hpp"
 
 using namespace m5avatar;
-Avatar* avatar = nullptr;
-Speech* speech = nullptr;
+Avatar* avatar = new Avatar();  // ポインタに変更
 
 WebAPI webAPI;
 Mp3ToWav mp3ToWav;  // mp3をwavに変換
@@ -41,19 +40,17 @@ StackchanSystemConfig system_config;
 ColorPalette* color_palette;
 #endif
 
+Speech* speech = new Speech(wavPlayer, avatar, servo, system_config);  // avatar を確保した後で Speech を作成
+
+
 bool core_port_a = false;  // Core1のPortAを使っているかどうか
 
 void setup() {
   Serial.begin(115200);  // シリアル出力初期設定
-  delay(50);
 
   auto cfg = M5.config();  // 設定用の情報を抽出
   //cfg.output_power = true;    // Groveポートの5V出力をする／しない（TakaoBase用）
   M5.begin(cfg);  // M5Stackをcfgの設定で初期化
-
-  avatar = new Avatar();                   // ポインタに変更
-  speech = new Speech(wavPlayer, avatar);  // avatar を確保した後で Speech を作成
-
 
 #ifdef ARDUINO_M5STACK_CORES3
   unifiedButton.begin(&M5.Display, goblib::UnifiedButton::appearance_t::transparent_all);
@@ -72,7 +69,16 @@ void setup() {
   delay(2000);
 
   system_config.loadConfig(SD, "");
-
+  if (M5.getBoard() == m5::board_t::board_M5Stack) {
+    if (system_config.getServoInfo(AXIS_X)->pin == 22) {
+      // M5Stack Coreの場合、Port.Aを使う場合は内部I2CをOffにする必要がある。バッテリー表示は不可。
+      avatar->setBatteryIcon(false);
+      M5.In_I2C.release();
+      core_port_a = true;
+    }
+  } else {
+    avatar->setBatteryIcon(true);
+  }
   // servo
 #ifdef ARDUINO_M5STACK_CORES3
   system_config.getServoInfo(AXIS_X)->pin = 1;  // AXIS_Xのピンを2に設定
@@ -81,28 +87,6 @@ void setup() {
   system_config.getServoInfo(AXIS_X)->pin = 5;   // AXIS_Xのピンを2に設定
   system_config.getServoInfo(AXIS_Y)->pin = 21;  // AXIS_Yのピンを1に設定
 #endif
-
-
-
-  if (M5.getBoard() == m5::board_t::board_M5Stack) {
-    const int px = system_config.getServoInfo(AXIS_X)->pin;  // ★ CHANGED
-    const int py = system_config.getServoInfo(AXIS_Y)->pin;  // ★ CHANGED
-    const bool usingPortA = (px == 21 || px == 22 ||         // ★ CHANGED
-                             py == 21 || py == 22);          // ★ CHANGED
-
-    if (usingPortA) {  // ★ CHANGED
-      // M5Stack Coreで Port.A を使う場合は内部I2CをOffにする必要がある。バッテリー表示は不可。
-      avatar->setBatteryIcon(false);
-      M5.In_I2C.release();
-      core_port_a = true;
-    } else {
-      avatar->setBatteryIcon(true);
-    }
-  } else {
-    avatar->setBatteryIcon(true);
-  }
-
-  //   // servo
   servo.begin(system_config.getServoInfo(AXIS_X)->pin, system_config.getServoInfo(AXIS_X)->start_degree,
               system_config.getServoInfo(AXIS_X)->offset,
               system_config.getServoInfo(AXIS_Y)->pin, system_config.getServoInfo(AXIS_Y)->start_degree,
@@ -115,15 +99,16 @@ void setup() {
   M5_LOGI("AXIS_X: %d", system_config.getServoInfo(AXIS_X)->pin);
   M5_LOGI("AXIS_Y: %d", system_config.getServoInfo(AXIS_Y)->pin);
 
+#ifdef ARDUINO_M5STACK_CORE
   avatar->setFace(new OmegaFace());
   color_palette = new ColorPalette();
   color_palette->set(COLOR_PRIMARY, TFT_BLACK);
   color_palette->set(COLOR_SECONDARY, TFT_BLUE);
   color_palette->set(COLOR_BACKGROUND, TFT_WHITE);
   avatar->setColorPalette(*color_palette);
-
+#else
   avatar->setFace(avatar->getFace());
-
+#endif
 
   avatar->init(8);  // start drawing
 
