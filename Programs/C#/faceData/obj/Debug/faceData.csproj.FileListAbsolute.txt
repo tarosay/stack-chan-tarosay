@@ -1,0 +1,11 @@
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\bin\Debug\faceData.exe.config
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\bin\Debug\faceData.exe
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\bin\Debug\faceData.pdb
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.csproj.AssemblyReference.cache
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.Form1.resources
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.Properties.Resources.resources
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.csproj.GenerateResource.cache
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.csproj.CoreCompileInputs.cache
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.exe
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.pdb
+D:\git\github\stack-chan-tarosay\Programs\C#\faceData\obj\Debug\faceData.exe.config

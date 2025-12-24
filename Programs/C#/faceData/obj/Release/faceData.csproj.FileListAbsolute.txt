@@ -1,0 +1,9 @@
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\bin\Release\faceData.exe.config
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\bin\Release\faceData.exe
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\bin\Release\faceData.pdb
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\obj\Release\faceData.csproj.AssemblyReference.cache
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\obj\Release\faceData.Properties.Resources.resources
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\obj\Release\faceData.csproj.GenerateResource.cache
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\obj\Release\faceData.csproj.CoreCompileInputs.cache
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\obj\Release\faceData.exe
+D:\git\github\iroiro-na-programs\Programs\Projects\faceData\obj\Release\faceData.pdb

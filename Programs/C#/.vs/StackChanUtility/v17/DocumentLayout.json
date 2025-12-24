@@ -1,0 +1,100 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|d:\\git\\github\\stack-chan-tarosay\\programs\\c#\\facedata\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|solutionrelative:facedata\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\facedata\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|solutionrelative:facedata\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\facedata\\tachikomafacerenderer2.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|solutionrelative:facedata\\tachikomafacerenderer2.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\facedata\\tachikomaassets.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|solutionrelative:facedata\\tachikomaassets.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\facedata\\tachikomafacerenderer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{92E2C614-51D5-4E9A-8E4E-FAFA78B848B0}|faceData\\faceData.csproj|solutionrelative:facedata\\tachikomafacerenderer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TachikomaFaceRenderer2.cs",
+              "DocumentMoniker": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\TachikomaFaceRenderer2.cs",
+              "RelativeDocumentMoniker": "faceData\\TachikomaFaceRenderer2.cs",
+              "ToolTip": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\TachikomaFaceRenderer2.cs",
+              "RelativeToolTip": "faceData\\TachikomaFaceRenderer2.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAACsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T15:47:41.707Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "TachikomaAssets.cs",
+              "DocumentMoniker": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\TachikomaAssets.cs",
+              "RelativeDocumentMoniker": "faceData\\TachikomaAssets.cs",
+              "ToolTip": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\TachikomaAssets.cs",
+              "RelativeToolTip": "faceData\\TachikomaAssets.cs",
+              "ViewState": "AgIAADAAAAAAAAAAAAAkwG0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T15:42:18.605Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "TachikomaFaceRenderer.cs",
+              "DocumentMoniker": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\TachikomaFaceRenderer.cs",
+              "RelativeDocumentMoniker": "faceData\\TachikomaFaceRenderer.cs",
+              "ToolTip": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\TachikomaFaceRenderer.cs",
+              "RelativeToolTip": "faceData\\TachikomaFaceRenderer.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAADwvxgAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T15:33:25.571Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\Form1.cs",
+              "RelativeDocumentMoniker": "faceData\\Form1.cs",
+              "ToolTip": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\Form1.cs",
+              "RelativeToolTip": "faceData\\Form1.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAwBsAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T15:23:24.097Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Form1.cs [\u30C7\u30B6\u30A4\u30F3]",
+              "DocumentMoniker": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\Form1.cs",
+              "RelativeDocumentMoniker": "faceData\\Form1.cs",
+              "ToolTip": "D:\\git\\github\\stack-chan-tarosay\\Programs\\C#\\faceData\\Form1.cs [\u30C7\u30B6\u30A4\u30F3]",
+              "RelativeToolTip": "faceData\\Form1.cs [\u30C7\u30B6\u30A4\u30F3]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T15:23:20.521Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
