@@ -70,12 +70,12 @@ void setup() {
 
   system_config.loadConfig(SD, "");
   if (M5.getBoard() == m5::board_t::board_M5Stack) {
-    if (system_config.getServoInfo(AXIS_X)->pin == 22) {
-      // M5Stack Coreの場合、Port.Aを使う場合は内部I2CをOffにする必要がある。バッテリー表示は不可。
-      avatar->setBatteryIcon(false);
-      M5.In_I2C.release();
-      core_port_a = true;
-    }
+    //if (system_config.getServoInfo(AXIS_X)->pin == 22) {
+    // M5Stack Coreの場合、Port.Aを使う場合は内部I2CをOffにする必要がある。バッテリー表示は不可。
+    avatar->setBatteryIcon(false);
+    M5.In_I2C.release();
+    core_port_a = true;
+    //}
   } else {
     avatar->setBatteryIcon(true);
   }
