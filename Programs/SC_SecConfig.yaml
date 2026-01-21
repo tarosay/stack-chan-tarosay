@@ -1,0 +1,9 @@
+# 個人情報用の設定ファイル
+wifi:
+ - ssid: "TAROSAY"
+   password: "37000370"
+ - ssid: "pi"
+   password: "raspberry"
+ - ssid: "higashi-2f"
+   password: "hama1297noiti"
+
