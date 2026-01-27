@@ -8,17 +8,11 @@
 extern SemaphoreHandle_t gSpiMutex;
 
 struct SpiGuard {
-  bool locked = false;
   SpiGuard() {
-    if (gSpiMutex != nullptr) {
-      xSemaphoreTake(gSpiMutex, portMAX_DELAY);
-      locked = true;
-    }
+    xSemaphoreTake(gSpiMutex, portMAX_DELAY);
   }
   ~SpiGuard() {
-    if (locked) {
-      xSemaphoreGive(gSpiMutex);
-    }
+    xSemaphoreGive(gSpiMutex);
   }
 };
 

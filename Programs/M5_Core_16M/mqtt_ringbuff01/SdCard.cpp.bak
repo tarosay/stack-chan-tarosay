@@ -1,11 +1,4 @@
 #include "SdCard.hpp"
-#include "SpiBusLock.hpp"
-
-static inline void ensure_spi_mutex() {
-  if (gSpiMutex == nullptr) {
-    gSpiMutex = xSemaphoreCreateMutex();
-  }
-}
 
 // グローバルインスタンスの定義
 SdCard sdCard;
@@ -14,8 +7,6 @@ SdCard sdCard;
 SdCard::SdCard() {}
 
 bool SdCard::begin(uint8_t ssPin, SPIClass& spi, uint32_t frequency, const char* mountpoint, uint8_t max_files, bool format_if_empty) {
-  ensure_spi_mutex();
-  SpiGuard g;
   return SD.begin(ssPin, spi, frequency, mountpoint, max_files, format_if_empty);
 }
 
@@ -56,8 +47,6 @@ bool SdCard::extractQuotedOrBareValue(const String& line, String& out) {
 
 // wifi: セクション内の "- " の個数を数える（=エントリ数）
 size_t SdCard::countWiFiEntriesInSD(const char* path) {
-  ensure_spi_mutex();
-  SpiGuard g;
   File f = SD.open(path, FILE_READ);
   if (!f) return 0;
 
@@ -90,8 +79,6 @@ size_t SdCard::countWiFiEntriesInSD(const char* path) {
 
 // index(0始まり) で指定して 1件だけ取り出す
 bool SdCard::loadWiFiByIndexFromSD(size_t index, String& ssid, String& password, const char* path) {
-  ensure_spi_mutex();
-  SpiGuard g;
   ssid = "";
   password = "";
 
