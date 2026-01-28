@@ -37,7 +37,7 @@ private:
 
   void ensureConnected_();
   bool topicMatch_(const char* filter, const char* topic) const;
-
+  
 // ---- Pool config（CHUNK_BYTESを変えるならPCM_MAXも変える）----
 #ifndef MQTTROUTER_TOPIC_MAX
 #define MQTTROUTER_TOPIC_MAX 96
@@ -57,28 +57,28 @@ private:
 #endif
 
 #ifndef MQTTROUTER_PCM_POOL_N
-#define MQTTROUTER_PCM_POOL_N 16
+#define MQTTROUTER_PCM_POOL_N 8
 #endif
 
   enum MsgKind : uint8_t { MK_SMALL = 1,
                            MK_PCM = 2 };
 
   struct SmallMsg {
-    uint8_t kind;
-    uint8_t poolIndex;
+    uint8_t kind;       // MK_SMALL
+    uint8_t poolIndex;  // 0..SMALL_POOL_N-1
     uint16_t tlen;
     uint16_t plen;
     char topic[MQTTROUTER_TOPIC_MAX];
-    alignas(4) uint8_t payload[MQTTROUTER_SMALL_MAX];  // ★追加
+    uint8_t payload[MQTTROUTER_SMALL_MAX];
   };
 
   struct PcmMsg {
-    uint8_t kind;
-    uint8_t poolIndex;
+    uint8_t kind;       // MK_PCM
+    uint8_t poolIndex;  // 0..PCM_POOL_N-1
     uint16_t tlen;
     uint16_t plen;
     char topic[MQTTROUTER_TOPIC_MAX];
-    alignas(4) uint8_t payload[MQTTROUTER_PCM_MAX];  // ★追加
+    uint8_t payload[MQTTROUTER_PCM_MAX];
   };
 
   bool async_ = false;

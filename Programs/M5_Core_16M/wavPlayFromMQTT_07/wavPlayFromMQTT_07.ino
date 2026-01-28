@@ -20,7 +20,8 @@ static IPAddress gBrokerIp;
 static uint16_t gBrokerPort = 1883;
 
 //WavStreamPlayer player(32768, 2, 0);
-WavStreamPlayer player(24576, 2, 0, 65536);
+WavStreamPlayer player(24576, 2, 0, 32768);
+//WavStreamPlayer player(24576, 2, 0, 65536);
 
 // MQTT
 static WiFiClient gWiFiClient;
@@ -56,6 +57,7 @@ void setup() {
 
   M5_LOGI("PCM16 MQTT SUB -> WavStreamPlayer");
   M5_LOGI("[BUILD] %s %s", __DATE__, __TIME__);
+
   delay(200);
 
   //画面とSDのSPI競合を避けるためのmutexセット

@@ -57,7 +57,7 @@ private:
 #endif
 
 #ifndef MQTTROUTER_PCM_POOL_N
-#define MQTTROUTER_PCM_POOL_N 16
+#define MQTTROUTER_PCM_POOL_N 12
 #endif
 
   enum MsgKind : uint8_t { MK_SMALL = 1,

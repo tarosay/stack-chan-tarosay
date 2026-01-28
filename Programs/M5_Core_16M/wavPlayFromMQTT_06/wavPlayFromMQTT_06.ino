@@ -55,6 +55,8 @@ void setup() {
   M5.Log.setEnableColor(m5::log_target_serial, false);
 
   M5_LOGI("PCM16 MQTT SUB -> WavStreamPlayer");
+  M5_LOGI("[BUILD] %s %s", __DATE__, __TIME__);
+
   delay(200);
 
   //画面とSDのSPI競合を避けるためのmutexセット
@@ -102,14 +104,14 @@ void setup() {
   });
 
   // タスク起動
-  xTaskCreatePinnedToCore(mqttTask, "mqttTask", 4096, nullptr, 2, &hMqttTask, 0);              // Core0
-  xTaskCreatePinnedToCore(dispatchTask, "dispatchTask", 6144, nullptr, 1, &hDispatchTask, 0);  // ★Core1へ戻す、prioは低く
+  xTaskCreatePinnedToCore(mqttTask, "mqttTask", 4096, nullptr, 2, &hMqttTask, 0);
+  xTaskCreatePinnedToCore(dispatchTask, "dispatchTask", 4096, nullptr, 1, &hDispatchTask, 0);
 
   {
     SpiGuard g;
     M5.Display.clear();
     M5.Display.setTextSize(2);
-    //M5.Display.println("A=Play  B=Stop");
+    M5.Display.println("B=Stop");
   }
 }
 
