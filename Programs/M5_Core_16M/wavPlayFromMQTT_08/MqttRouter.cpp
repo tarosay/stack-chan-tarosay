@@ -30,7 +30,7 @@ void MqttRouter::addSubscription(const char* topicFilter, HandlerFn fn, uint8_t 
   // 既に接続済みならここで購読（再接続時はresubscribeAllで復帰）
   if (mqtt_.connected()) {
     bool ok = mqtt_.subscribe(topicFilter, qos);
-    M5_LOGI("sub %s qos=%u -> %d", topicFilter, (unsigned)qos, ok);
+  // M5_LOGI("sub %s qos=%u -> %d", topicFilter, (unsigned)qos, ok);  // (disabled) verbose
   }
 }
 
@@ -43,7 +43,7 @@ void MqttRouter::resubscribeAll() {
   if (!mqtt_.connected()) return;
   for (auto& s : subs_) {
     bool ok = mqtt_.subscribe(s.filter.c_str(), s.qos);
-    M5_LOGI("sub %s qos=%u -> %d", s.filter.c_str(), (unsigned)s.qos, ok);
+  // M5_LOGI("sub %s qos=%u -> %d", s.filter.c_str(), (unsigned)s.qos, ok);  // (disabled) verbose
   }
 }
 
@@ -55,11 +55,22 @@ void MqttRouter::onMessage_(char* topic, uint8_t* payload, unsigned int length) 
   if (!topic || !payload || length == 0) return;
 
   if (async_) {
+    // ★ /pcm は fast-path（キュー/プールに溜めない）
+    // PREBURST などで一気に来ても、pool枯渇による drop→seq jump を避ける。
+    if (endsWith_(topic, "/pcm") || endsWith_(topic, "/ctrl")) {
+      for (auto& s : subs_) {
+        if (topicMatch_(s.filter.c_str(), topic)) {
+          if (s.fn) s.fn(topic, payload, length);
+        }
+      }
+      return;
+    }
+
     enqueuePool_(topic, payload, length);
     return;
   }
 
-  // async無効時は従来動作（その場でハンドラ実行）
+// async無効時は従来動作（その場でハンドラ実行）
   for (auto& s : subs_) {
     if (topicMatch_(s.filter.c_str(), topic)) {
       if (s.fn) s.fn(topic, payload, length);
@@ -101,13 +112,13 @@ void MqttRouter::ensureConnected_() {
   String cid = "M5-" + String((uint32_t)ESP.getEfuseMac(), HEX);
 
   while (!mqtt_.connected()) {
-    M5_LOGI("MQTT connecting...");
+    // M5_LOGI("MQTT connecting...");  // (disabled) verbose
     if (mqtt_.connect(cid.c_str())) {
-      M5_LOGI("MQTT connected");
+    // M5_LOGI("MQTT connected");  // (disabled) verbose
       // 再接続した瞬間に購読復活
       resubscribeAll();
     } else {
-      M5_LOGI("MQTT connect failed rc=%d", mqtt_.state());
+      M5_LOGW("MQTT connect failed rc=%d", mqtt_.state());
       vTaskDelay(pdMS_TO_TICKS(500));
     }
   }

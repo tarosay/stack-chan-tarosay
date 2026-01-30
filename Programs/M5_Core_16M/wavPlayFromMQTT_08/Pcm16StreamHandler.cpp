@@ -19,7 +19,7 @@ void Pcm16StreamHandler::stop(bool clearFifo) {
 }
 
 void Pcm16StreamHandler::onCtrl_(const char* topic, uint8_t* payload, unsigned int len) {
-  JsonDocument doc;
+  StaticJsonDocument<512> doc;
   if (deserializeJson(doc, payload, len)) {
     M5_LOGW("[CTRL] JSON parse error");
     return;

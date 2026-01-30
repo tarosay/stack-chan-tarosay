@@ -19,9 +19,7 @@
 static IPAddress gBrokerIp;
 static uint16_t gBrokerPort = 1883;
 
-//WavStreamPlayer player(32768, 2, 0);
-WavStreamPlayer player(24576, 2, 0, 32768);
-//WavStreamPlayer player(24576, 2, 0, 65536);
+WavStreamPlayer player(4096, 2, 0, 28672);
 
 // MQTT
 static WiFiClient gWiFiClient;
@@ -94,8 +92,8 @@ void setup() {
   player.beginAsync(4096, 3, 1, 1);  // prioを上げる（音声を優先）
 
   // MQTT
-  gRouter.enableAsyncDispatch(32);  // ★まず有効化（キュー深さは適当に）
-  gRouter.begin(gBrokerIp, gBrokerPort, 8192);
+  gRouter.enableAsyncDispatch(8);  // ★まず有効化（キュー深さは適当に）
+  gRouter.begin(gBrokerIp, gBrokerPort, 5120);
 
   gRouter.addSubscription("pcm16/+/ctrl", [&](const char* t, uint8_t* p, unsigned int n) {
     gPcm16.handle(t, p, n);
@@ -105,8 +103,8 @@ void setup() {
   });
 
   // タスク起動
-  xTaskCreatePinnedToCore(mqttTask, "mqttTask", 4096, nullptr, 2, &hMqttTask, 0);
-  xTaskCreatePinnedToCore(dispatchTask, "dispatchTask", 4096, nullptr, 1, &hDispatchTask, 0);
+  xTaskCreatePinnedToCore(mqttTask, "mqttTask", 3072, nullptr, 2, &hMqttTask, 0);
+  xTaskCreatePinnedToCore(dispatchTask, "dispatchTask", 3072, nullptr, 1, &hDispatchTask, 0);
 
   {
     SpiGuard g;
