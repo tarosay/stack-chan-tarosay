@@ -1,0 +1,6 @@
+スタックチャン注意事項
+M5.begin()
+を使う場合は、
+  ledcAttachChannel(cfg_.pinX, cfg_.hz, cfg_.resBits, cfg_.chX);
+のチャンネルに、ch0 は、使えません。
+今回は、chに、5番と6番を使いました。

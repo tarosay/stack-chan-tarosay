@@ -4,6 +4,9 @@ struct XYPos {
 };
 
 #include <Arduino.h>
+#include <M5Unified.h>
+#include <Wire.h>
+#include <driver/gpio.h>   // gpio_reset_pin を使う場合
 
 static constexpr uint32_t SERVO_HZ = 50;
 static constexpr uint8_t RES_BITS = 16;
@@ -167,8 +170,29 @@ static void moveNextBlocking(uint32_t durationMs) {
 }
 
 void setup() {
-  ledcAttachChannel(SERVO_X_PIN, SERVO_HZ, RES_BITS, CH_X);
-  ledcAttachChannel(SERVO_Y_PIN, SERVO_HZ, RES_BITS, CH_Y);
+  Serial.begin(115200);
+  auto cfg = M5.config();
+
+  // そもそもI2C系デバイスを使わないなら、I2Cを使う内蔵機能を切る（後述）
+  cfg.internal_imu = false;
+  cfg.internal_rtc = false;
+  cfg.internal_mic = false;
+  cfg.internal_spk = false;
+
+  //M5.begin(cfg);
+
+// ★重要：M5Stackは In/Ex が 21/22 を共有し得るので両方解放
+  M5.In_I2C.release();
+  M5.Ex_I2C.release();
+
+  // （念のため）ピン機能をリセットしてからPWMへ
+  gpio_reset_pin((gpio_num_t)21);
+  gpio_reset_pin((gpio_num_t)22);
+
+  delay(2000);
+
+  ledcAttachChannel(22, SERVO_HZ, RES_BITS, CH_X);
+  ledcAttachChannel(21, SERVO_HZ, RES_BITS, CH_Y);
 
   g_cur = { 0, 0 };
   g_next = g_cur;

@@ -17,6 +17,24 @@ void ServoXY::begin(int x0, int y0) {
 
   ledcAttachChannel(cfg_.pinX, cfg_.hz, cfg_.resBits, cfg_.chX);
   ledcAttachChannel(cfg_.pinY, cfg_.hz, cfg_.resBits, cfg_.chY);
+  Serial.printf("test03 %d %d %d %d\n", cfg_.pinX, cfg_.hz,cfg_.resBits, cfg_.chX);
+  Serial.printf("test03 %d %d %d %d\n", cfg_.pinY, cfg_.hz,cfg_.resBits, cfg_.chY);
+
+  delay(1000);
+  Serial.printf("2300\n");
+  ledcWriteChannel(cfg_.chX, 2300);
+  delay(5000);
+  Serial.printf("600\n");
+  ledcWriteChannel(cfg_.chX, 800);
+  delay(5000);
+
+  Serial.printf("2300\n");
+  ledcWriteChannel(cfg_.chX, 2300);
+  delay(5000);
+  Serial.printf("600\n");
+  ledcWriteChannel(cfg_.chX, 800);
+  delay(5000);
+
 
   cur_ = { x0, y0 };
   next_ = cur_;

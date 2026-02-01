@@ -55,16 +55,16 @@ void setup() {
 }
 
 void loop() {
-  servoWriteDeg(Y, -90);
+  servoWriteDeg(X, -90);
   //servoWriteDeg(CH2, 90);
   delay(800);
-  servoWriteDeg(Y, 0);
+  servoWriteDeg(X, 0);
   //servoWriteDeg(CH2, 0);
   delay(800);
-  servoWriteDeg(Y, 90);
+  servoWriteDeg(X, 90);
   //servoWriteDeg(CH2, -90);
   delay(800);
-  servoWriteDeg(Y, 0);
+  servoWriteDeg(X, 0);
   //servoWriteDeg(CH2, 0);
   delay(2000);
 }
