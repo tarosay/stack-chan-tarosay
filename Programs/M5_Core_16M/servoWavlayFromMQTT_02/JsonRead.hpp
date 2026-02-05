@@ -10,6 +10,14 @@ public:
   // コンストラクタ
   JsonRead();
 
+  enum class ValueType : uint8_t { I32,
+                                   U32,
+                                   F32,
+                                   BOOL };
+
+  // 終端は nullptr。各項目は (key, outPtr, type) の繰り返し
+  bool loadDataMulti(const char* path, const char* prefixPath, ...);
+
   // section[ index ][ keyA ] を outA に取り出す。
   // keyB/outB が指定されていれば section[index][keyB] も取り出す。
   // 戻り値: 1個モード=keyAが取れたらtrue / 2個モード=keyA,keyB両方取れたらtrue

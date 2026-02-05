@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+*/*.bak
+# Backup files
+*.bak
+
+# Visual Studio
+.vs/
+

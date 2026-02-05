@@ -3,7 +3,7 @@
 #include <SD.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <ArduinoJson.h>
+#include <esp_system.h>
 
 #include "WavStreamPlayer.hpp"
 #include "SpiBusLock.hpp"
@@ -13,6 +13,7 @@
 #include "Pcm16StreamHandler.hpp"
 #include "VolumeHandler.hpp"
 #include "ServoXY.hpp"
+#include "ServoXYHandler.hpp"
 
 #ifndef SDCARD_CSPIN
 #define SDCARD_CSPIN 4
@@ -21,16 +22,19 @@
 static IPAddress gBrokerIp;
 static uint16_t gBrokerPort = 1883;
 
+// Devices / services
 WavStreamPlayer player(4096, 2, 0, 28672);
-ServoXY servo;
+ServoXY servoXY;
 
 // MQTT
 static WiFiClient gWiFiClient;
 static PubSubClient gMqtt(gWiFiClient);
 static MqttRouter gRouter(gMqtt);
 
-static Pcm16StreamHandler gPcm16(player);
-static VolumeHandler gVol(player, 180);
+// Handlers
+static Pcm16StreamHandler gPcm16StreamHandler(player);
+static VolumeHandler gVolumeHandler(player, 180);
+static ServoXYHandler gServoXYHandler(servoXY);
 
 static TaskHandle_t hMqttTask = nullptr;
 static TaskHandle_t hDispatchTask = nullptr;
@@ -62,6 +66,7 @@ void setup() {
 
   delay(200);
 
+
   //画面とSDのSPI競合を避けるためのmutexセット
   ensure_spi_mutex();
 
@@ -76,9 +81,9 @@ void setup() {
     for (;;) delay(1000);
   }
 
-  if (!servo.begin()) {
+  if (!servoXY.begin()) {
     Serial.println("servo begin error");
-    servo.begin(0, 0);
+    servoXY.begin(0, 0);
   }
 
   if (!wifiConnect.connectToWiFi()) {
@@ -96,7 +101,7 @@ void setup() {
   auto spk = M5.Speaker.config();
   M5.Speaker.config(spk);
   M5.Speaker.begin();
-  gVol.apply();
+  gVolumeHandler.apply();
 
   player.beginAsync(4096, 3, 1, 1);  // prioを上げる（音声を優先）
 
@@ -106,14 +111,24 @@ void setup() {
 
   //Subの追加セット
   gRouter.addSubscription("pcm16/+/ctrl", [&](const char* t, uint8_t* p, unsigned int n) {
-    gPcm16.handle(t, p, n);
+    gPcm16StreamHandler.handle(t, p, n);
   });
   gRouter.addSubscription("pcm16/+/pcm", [&](const char* t, uint8_t* p, unsigned int n) {
-    gPcm16.handle(t, p, n);
+    gPcm16StreamHandler.handle(t, p, n);
   });
   // Volume control (plain integer payload): device/+/audio/vol
   gRouter.addSubscription("device/+/audio/vol", [&](const char* t, uint8_t* p, unsigned int n) {
-    gVol.handle(t, p, n);
+    gVolumeHandler.handle(t, p, n);
+  });
+
+  // ServoXY control (topic command): device/+/servoxy/<cmd>
+  //   move  payload: "x y ms"
+  //   stop  payload: ""
+  //   home  payload: "ms"
+  //   speed payload: "degps_x degps_y"
+  //   pulse payload: "minX maxX minY maxY"
+  gRouter.addSubscription("device/+/servoxy/#", [&](const char* t, uint8_t* p, unsigned int n) {
+    (void)gServoXYHandler.handle(t, p, n);
   });
 
   // タスク起動
@@ -125,24 +140,25 @@ void setup() {
     M5.Display.clear();
     M5.Display.setTextSize(2);
     M5.Display.println("A=Stop B=Up C=Right");
+    M5.Display.println("MQTT sub: device/+/servoxy/#");
   }
 }
 
 void loop() {
   M5.update();
-  servo.update();
+  servoXY.update();
 
   if (M5.BtnA.wasPressed()) {
-    servo.moveBlocking(0, 0, 1500);
-    gPcm16.stop(true);
+    servoXY.moveBlocking(0, 0, 1500);
+    gPcm16StreamHandler.stop(true);
   }
 
   if (M5.BtnB.wasPressed()) {
-    servo.moveBlocking(0, -45, 1500);
+    servoXY.moveBlocking(0, -45, 1500);
   }
 
   if (M5.BtnC.wasPressed()) {
-    servo.moveBlocking(-90, 0, 1500);
+    servoXY.moveBlocking(-90, 0, 1500);
   }
 
   delay(5);
