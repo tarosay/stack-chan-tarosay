@@ -59,7 +59,8 @@ void setup() {
   color_palettes[4]->set(COLOR_PRIMARY, TFT_RED);
   color_palettes[4]->set(COLOR_BACKGROUND, TFT_PINK);
 
-  avatar.init(8);  // start drawing w/ 8bit color mode
+  //avatar.init(8);  // start drawing w/ 8bit color mode
+  avatar.init(4);  // start drawing w/ 8bit color mode
   avatar.setColorPalette(*color_palettes[0]);
   avatar.setFace(faces[0]);
 }
