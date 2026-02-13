@@ -6,23 +6,24 @@
 #include <faces/FaceTemplates.hpp>
 
 static constexpr uint16_t palette[16] = {
-  TFT_BLACK,    // 0
-  TFT_WHITE,    // 1
-  TFT_RED,      // 2
-  TFT_GREEN,    // 3
-  TFT_BLUE,     // 4
-  TFT_YELLOW,   // 5
-  TFT_CYAN,     // 6
-  TFT_MAGENTA,  // 7
-  0x8410,       // 8  グレー
-  0x4208,       // 9  ダークグレー
-  0xFD20,       // 10 オレンジ
-  0xAFE5,       // 11 ライトグリーン
-  0x7BEF,       // 12 ライトグレー
-  0x001F,       // 13 ネイビー
-  0xF81F,       // 14 ピンク
-  0xFFFF        // 15 フル白
+  0x0000,  // 0  BLACK
+  0xFFFF,  // 1  WHITE
+  0xF800,  // 2  RED
+  0x07E0,  // 3  GREEN
+  0x001F,  // 4  BLUE（純青）
+  0xFFE0,  // 5  YELLOW
+  0x07FF,  // 6  CYAN
+  0xF81F,  // 7  MAGENTA
+  0x8410,  // 8  GRAY
+  0x03EF,  // 9  DARK CYAN
+  0x7BEF,  // 10 DARK GRAY
+  0xAFE5,  // 11 LIGHT GREEN
+  0xC618,  // 12 LIGHT GRAY
+  0x0010,  // 13 NAVY（暗い青）
+  0xF81F,  // 14 PINK
+  0xFFFF   // 15 WHITE（予備）
 };
+
 
 using namespace m5avatar;
 
@@ -61,7 +62,7 @@ void setup() {
   //faces[5] = new ImageOnlyFace();  // ←ここで登録
   faces[5] = avatar.getFace();  // native face
 
- // auto* gfx = &M5.Display;  // M5Unifiedの描画先
+  // auto* gfx = &M5.Display;  // M5Unifiedの描画先
   //gfx->setPalette(palette);
 
   color_palettes[0] = new ColorPalette();
@@ -69,20 +70,26 @@ void setup() {
   color_palettes[2] = new ColorPalette();
   color_palettes[3] = new ColorPalette();
   color_palettes[4] = new ColorPalette();
-  color_palettes[1]->set(COLOR_PRIMARY,
-                         M5.Lcd.color24to16(0x383838));  // eye
-  color_palettes[1]->set(COLOR_BACKGROUND,
-                         M5.Lcd.color24to16(0xfac2a8));  // skin
-  color_palettes[1]->set(COLOR_SECONDARY,
-                         TFT_PINK);  // cheek
-  color_palettes[2]->set(COLOR_PRIMARY, TFT_YELLOW);
-  color_palettes[2]->set(COLOR_BACKGROUND, TFT_DARKCYAN);
-  color_palettes[3]->set(COLOR_PRIMARY, TFT_DARKGREY);
-  color_palettes[3]->set(COLOR_BACKGROUND, TFT_WHITE);
-  color_palettes[4]->set(COLOR_PRIMARY, TFT_RED);
-  color_palettes[4]->set(COLOR_BACKGROUND, TFT_PINK);
+
+  color_palettes[1]->set(COLOR_PRIMARY, palette[13]);
+  color_palettes[2]->set(COLOR_PRIMARY, palette[13]);
+  color_palettes[3]->set(COLOR_PRIMARY, palette[13]);
+  color_palettes[4]->set(COLOR_PRIMARY, palette[13]);
+
+  color_palettes[1]->set(COLOR_BACKGROUND, palette[2]);
+  color_palettes[2]->set(COLOR_BACKGROUND, palette[3]);
+  color_palettes[3]->set(COLOR_BACKGROUND, palette[4]);
+  color_palettes[4]->set(COLOR_BACKGROUND, palette[5]);
+
+  color_palettes[1]->set(COLOR_SECONDARY, palette[6]);
+  color_palettes[2]->set(COLOR_SECONDARY, palette[6]);
+  color_palettes[3]->set(COLOR_SECONDARY, palette[6]);
+  color_palettes[4]->set(COLOR_SECONDARY, palette[6]);
+
+
 
   //avatar.init(8);  // start drawing w/ 8bit color mode
+  avatar.setIndexedPalette(palette, 16);
   avatar.init(4);  // start drawing w/ 8bit color mode
   avatar.setColorPalette(*color_palettes[0]);
   avatar.setFace(faces[0]);
@@ -95,7 +102,13 @@ void loop() {
     face_idx = (face_idx + 1) % num_faces;  // loop index
   }
   if (M5.BtnB.wasPressed()) {
+    avatar.suspend();  // ★追加
     avatar.setColorPalette(*color_palettes[palette_idx]);
+    avatar.resume();  // ★追加
+
+    //face_idx = face_idx - 1 < 0 ? num_faces - 1 : face_idx - 1;
+    //avatar.setFace(faces[face_idx]);
+    //face_idx = (face_idx + 1) % num_faces;  // loop index
     palette_idx = (palette_idx + 1) % num_palettes;
   }
   if (M5.BtnC.wasPressed()) {
