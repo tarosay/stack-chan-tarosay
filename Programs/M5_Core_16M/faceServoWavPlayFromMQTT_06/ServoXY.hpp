@@ -21,15 +21,15 @@ public:
     uint8_t chY = 5;
 
     // PWM
-    uint32_t hz = 200;
+    uint32_t hz = 50;
     uint8_t resBits = 16;
-    uint32_t tickMs = 4;  // 50Hzなら20ms推奨
+    uint32_t tickMs = 20;  // 50Hzなら20ms推奨
 
     // pulse range (保守的初期値。実機で詰める)
-    int minUsX = 300;
-    int maxUsX = 4600;
-    int minUsY = 300;
-    int maxUsY = 4600;
+    int minUsX = 600;
+    int maxUsX = 2300;
+    int minUsY = 600;
+    int maxUsY = 2300;
 
     // speed limit (deg/sec) 0なら無制限
     uint32_t maxDegPerSecX = 300;
@@ -73,6 +73,7 @@ public:
   void setPulseRangeX(int minUs, int maxUs);
   void setPulseRangeY(int minUs, int maxUs);
 
+  void paramList();
 private:
   struct MoveState {
     bool active = false;
@@ -91,8 +92,8 @@ private:
   XYPos offset_{ 0, 0 };
 
   // logical limits (inclusive)
-  XYPos lower_{ -90, -90 };
-  XYPos upper_{ 90, 90 };
+  XYPos lower_{ -70, -45 };
+  XYPos upper_{ 70, 0 };
   MoveState mv_;
 
   uint32_t periodUs_ = 20000;

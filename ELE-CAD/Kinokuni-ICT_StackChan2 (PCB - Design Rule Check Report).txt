@@ -1,0 +1,69 @@
+Design Rule Check Report
+------------------------
+
+Report Written:     01:53 Wednesday, February 18, 2026
+Design Path:        D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan2.pcb
+Design Title:       
+Created:            2022/04/10 3:23:23
+Last Saved:         2026/02/18 1:50:37
+Editing Time:       1602 min
+Units:              mm (precision 3)
+
+
+Results
+=======
+
+
+No errors found
+
+
+Settings
+========
+
+
+Spacings
+
+=========
+
+Tracks        No
+Pads and Vias No
+Shapes        No
+Text          No
+Board         No
+Drills        No
+Components    Yes
+
+
+Manufacturing
+
+==============
+
+Drill Breakout                  No
+Drill Backoff                   No
+Silkscreen Overlap              No
+Copper Text In Board            No
+Min Track Width                 No
+Min Annular Ring                No
+Min Paste Size                  No
+Vias In Pads                    No
+Unplated Vias                   No
+Unplated Pads With Inner Tracks No
+Unplated Pads                   No
+
+
+Nets
+
+=====
+
+Net Completion               Yes
+Dangling Tracks              Yes
+Net Track Length Differences No
+Nets without Components      No
+Nets on No Connect pins      No
+Single Pin Net               No
+Max Vias on Net              No
+Pcb-only Nets                No
+
+
+
+End Of Report.

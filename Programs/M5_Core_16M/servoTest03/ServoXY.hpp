@@ -14,8 +14,8 @@ public:
     // pins/ch
     uint8_t pinX = 22;
     uint8_t pinY = 21;
-    uint8_t chX = 0;
-    uint8_t chY = 1;
+    uint8_t chX = 6;
+    uint8_t chY = 5;
 
     // PWM
     uint32_t hz = 50;

@@ -15,28 +15,23 @@ void ServoXY::begin(int x0, int y0) {
   dutyMax_ = (cfg_.resBits >= 31) ? 0xFFFFFFFFUL : ((1UL << cfg_.resBits) - 1UL);
 
   // Attach PWM channels (Arduino-ESP32 3.x API)
-  ledcAttachChannel(cfg_.pinX, cfg_.hz, cfg_.resBits, cfg_.chX);
-  ledcAttachChannel(cfg_.pinY, cfg_.hz, cfg_.resBits, cfg_.chY);
+  bool bl0 = ledcAttachChannel(cfg_.pinX, cfg_.hz, cfg_.resBits, cfg_.chX);
+  bool bl1 = ledcAttachChannel(cfg_.pinY, cfg_.hz, cfg_.resBits, cfg_.chY);
 
-  // ★明示的に無出力（LOW）にして待つ
-  ledcWriteChannel(cfg_.chX, 0);
-  ledcWriteChannel(cfg_.chY, 0);
-  delay(1200);  // 200/500/1000 を試す価値あり
+  if (bl0) {
+    Serial.println("ledcAttachChannel pinx");
+    M5.Display.println("Attachl pinx");
+  } else {
+    M5.Display.println("Not pinx");
+  }
 
 
-  // ★ソフト対策2：まずは“中点”に置いてから目標へ
-  // ConfigにcenterUsは無いので、min/maxの中点を使う
-  const int midUsX = (cfg_.minUsX + cfg_.maxUsX) / 2;
-  const int midUsY = (cfg_.minUsY + cfg_.maxUsY) / 2;
-
-  // writeUs_ は min/max にクランプする（ServoXY.cppに実装あり）
-  writeUs_(cfg_.chX, midUsX);
-  writeUs_(cfg_.chY, midUsY);
-  delay(200);
-
-  Serial.printf("%d , %d, %d, %d \n", cfg_.minUsX, cfg_.maxUsX, cfg_.minUsY, cfg_.maxUsY);
-  Serial.println("cfg_.minUsX, cfg_.maxUsX, cfg_.minUsY, cfg_.maxUsY");
-
+  if (bl1) {
+    Serial.println("ledcAttachChannel piny");
+    M5.Display.println("Attachl piny");
+  } else {
+    M5.Display.println("Not piny");
+  }
 
   // Set initial logical position
   cur_.x = clampDeg(x0);
@@ -46,6 +41,8 @@ void ServoXY::begin(int x0, int y0) {
 
   // Apply initial output (with offset/limits)
   applyXY_(cur_);
+  setNext(x0, y0);
+  moveBlocking(500);
 }
 
 bool ServoXY::begin(const char* jsonPath) {
@@ -62,6 +59,19 @@ bool ServoXY::begin(const char* jsonPath) {
 
   cfg_.pinX = (uint8_t)pinX;
   cfg_.pinY = (uint8_t)pinY;
+  Serial.printf("pinX: %d  pinY: %d\n", cfg_.pinX, cfg_.pinY);
+
+  int32_t chx = cfg_.chX;
+  int32_t chy = cfg_.chY;
+  (void)jsonRead.loadDataMulti(jsonPath, "servo/ch",
+                               "x", &chx, JsonRead::ValueType::I32,
+                               "y", &chy, JsonRead::ValueType::I32,
+                               nullptr);
+  cfg_.chX = (int)chx;
+  cfg_.chY = (int)chy;
+  // cfg_.chX = 2;
+  // cfg_.chY = 3;
+  Serial.printf("ch x: %d  ch y: %d\n", cfg_.chX, cfg_.chY);
 
   // Optional parameters (missing keys are OK: defaults stay)
   int32_t ox = offset_.x;
@@ -72,6 +82,7 @@ bool ServoXY::begin(const char* jsonPath) {
                                nullptr);
   offset_.x = (int)ox;
   offset_.y = (int)oy;
+  Serial.printf("offset x: %d  offset y: %d\n", offset_.x, offset_.y);
 
   int32_t cx = 0;
   int32_t cy = 0;
@@ -88,6 +99,7 @@ bool ServoXY::begin(const char* jsonPath) {
                                nullptr);
   lower_.x = (int)llx;
   lower_.y = (int)lly;
+  Serial.printf("lower_limit x: %d  lower_limit y: %d\n", lower_.x, lower_.y);
 
   int32_t ulx = upper_.x;
   int32_t uly = upper_.y;
@@ -97,6 +109,7 @@ bool ServoXY::begin(const char* jsonPath) {
                                nullptr);
   upper_.x = (int)ulx;
   upper_.y = (int)uly;
+  Serial.printf("upper_limit x: %d  upper_limit y: %d\n", upper_.x, upper_.y);
 
   // speed
   int32_t tickMs = (int32_t)cfg_.tickMs;
@@ -104,6 +117,7 @@ bool ServoXY::begin(const char* jsonPath) {
                                "tick_ms", &tickMs, JsonRead::ValueType::I32,
                                nullptr);
   if (tickMs > 0) cfg_.tickMs = (uint32_t)tickMs;
+  Serial.printf("tick_ms: %d\n", cfg_.tickMs);
 
   int32_t sx = (int32_t)cfg_.maxDegPerSecX;
   int32_t sy = (int32_t)cfg_.maxDegPerSecY;
@@ -113,30 +127,32 @@ bool ServoXY::begin(const char* jsonPath) {
                                nullptr);
   if (sx >= 0) cfg_.maxDegPerSecX = (uint32_t)sx;
   if (sy >= 0) cfg_.maxDegPerSecY = (uint32_t)sy;
+  Serial.printf("max_deg_per_sec x: %d  max_deg_per_sec y: %d\n", cfg_.maxDegPerSecX, cfg_.maxDegPerSecY);
 
   // pulse ranges
-  // int32_t minUsX = cfg_.minUsX;
-  // int32_t maxUsX = cfg_.maxUsX;
-  // (void)jsonRead.loadDataMulti(jsonPath, "servo/pulse_us/x",
-  //                              "min", &minUsX, JsonRead::ValueType::I32,
-  //                              "max", &maxUsX, JsonRead::ValueType::I32,
-  //                              nullptr);
-  // if (minUsX > 0) cfg_.minUsX = (int)minUsX;
-  // if (maxUsX > 0) cfg_.maxUsX = (int)maxUsX;
+  int32_t minUsX = cfg_.minUsX;
+  int32_t maxUsX = cfg_.maxUsX;
+  (void)jsonRead.loadDataMulti(jsonPath, "servo/pulse_us/x",
+                               "min", &minUsX, JsonRead::ValueType::I32,
+                               "max", &maxUsX, JsonRead::ValueType::I32,
+                               nullptr);
+  if (minUsX > 0) cfg_.minUsX = (int)minUsX;
+  if (maxUsX > 0) cfg_.maxUsX = (int)maxUsX;
+  Serial.printf("pulse_us/x min: %d  pulse_us/x max: %d\n", cfg_.minUsX, cfg_.maxUsX);
 
-  // int32_t minUsY = cfg_.minUsY;
-  // int32_t maxUsY = cfg_.maxUsY;
-  // (void)jsonRead.loadDataMulti(jsonPath, "servo/pulse_us/y",
-  //                              "min", &minUsY, JsonRead::ValueType::I32,
-  //                              "max", &maxUsY, JsonRead::ValueType::I32,
-  //                              nullptr);
-  // if (minUsY > 0) cfg_.minUsY = (int)minUsY;
-  // if (maxUsY > 0) cfg_.maxUsY = (int)maxUsY;
-
-  Serial.printf("%d , %d, %d, %d \n", cfg_.minUsX, cfg_.maxUsX, cfg_.minUsY, cfg_.maxUsY);
+  int32_t minUsY = cfg_.minUsY;
+  int32_t maxUsY = cfg_.maxUsY;
+  (void)jsonRead.loadDataMulti(jsonPath, "servo/pulse_us/y",
+                               "min", &minUsY, JsonRead::ValueType::I32,
+                               "max", &maxUsY, JsonRead::ValueType::I32,
+                               nullptr);
+  if (minUsY > 0) cfg_.minUsY = (int)minUsY;
+  if (maxUsY > 0) cfg_.maxUsY = (int)maxUsY;
+  Serial.printf("pulse_us/y min: %d  pulse_us/y max: %d\n", cfg_.minUsY, cfg_.maxUsY);
 
   // Now attach and apply using center
   begin((int)cx, (int)cy);
+  Serial.printf("cx: %d cy: %d\n", cx, cy);
   return true;
 }
 
@@ -277,6 +293,7 @@ void ServoXY::writeUs_(uint8_t ch, int us) const {
     if (us < cfg_.minUsY) us = cfg_.minUsY;
     if (us > cfg_.maxUsY) us = cfg_.maxUsY;
   }
+
   ledcWriteChannel(ch, usToDuty_((uint32_t)us));
 }
 
@@ -302,8 +319,11 @@ void ServoXY::writeDeg_(uint8_t ch, int deg) const {
   d = clampDeg(d);
 
   int us;
-  if (ch == cfg_.chX) us = cfg_.minUsX + (d + 90) * (cfg_.maxUsX - cfg_.minUsX) / 180;
-  else us = cfg_.minUsY + (d + 90) * (cfg_.maxUsY - cfg_.minUsY) / 180;
+  if (ch == cfg_.chX) {
+    us = cfg_.minUsX + (d + 90) * (cfg_.maxUsX - cfg_.minUsX) / 180;
+  } else {
+    us = cfg_.minUsY + (d + 90) * (cfg_.maxUsY - cfg_.minUsY) / 180;
+  }
   writeUs_(ch, us);
 }
 
@@ -328,4 +348,17 @@ uint32_t ServoXY::clampDurationMs_(const XYPos& s, const XYPos& t, uint32_t reqM
     ms = ceil_div_u32(ms, cfg_.tickMs) * cfg_.tickMs;
   }
   return ms;
+}
+
+void ServoXY::paramList() {
+  Serial.println("**** Parameter List ****");
+  Serial.printf("pinX: %d  pinY: %d\n", cfg_.pinX, cfg_.pinY);
+  Serial.printf("chX: %d  chY: %d\n", cfg_.chX, cfg_.chY);
+  Serial.printf("offset x: %d  offset y: %d\n", offset_.x, offset_.y);
+  Serial.printf("lower_limit x: %d  lower_limit y: %d\n", lower_.x, lower_.y);
+  Serial.printf("upper_limit x: %d  upper_limit y: %d\n", upper_.x, upper_.y);
+  Serial.printf("tick_ms: %d\n", cfg_.tickMs);
+  Serial.printf("max_deg_per_sec x: %d  max_deg_per_sec y: %d\n", cfg_.maxDegPerSecX, cfg_.maxDegPerSecY);
+  Serial.printf("pulse_us/x min: %d  pulse_us/x max: %d\n", cfg_.minUsX, cfg_.maxUsX);
+  Serial.printf("pulse_us/y min: %d  pulse_us/y max: %d\n", cfg_.minUsY, cfg_.maxUsY);
 }

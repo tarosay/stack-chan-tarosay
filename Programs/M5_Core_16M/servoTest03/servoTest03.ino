@@ -11,11 +11,19 @@ void setup() {
 
   servo.begin(0, 0);
 
-  // 軽い移動は優先して完了させたい（ただし他タスクはdelayで動く）
-  // servo.moveBlocking(90, -90, 1000);
+  M5.Display.setTextSize(2);              // 文字サイズ
+  M5.Display.setTextColor(WHITE, BLACK);  // (文字色, 背景色)
+  M5.Display.setCursor(0, 0);             // 描画位置 (x,y)
 
+  M5.Display.println("x = 90, y = -90");
+  // 軽い移動は優先して完了させたい（ただし他タスクはdelayで動く）
+  servo.moveBlocking(90, -90, 3000);
+
+  delay(1000);
+
+  M5.Display.println("x = 90, y = -90");
   // 長い移動は非ブロッキングで流す
-  // servo.moveBegin(-90, 90, 4000);
+  servo.moveBegin(-90, 90, 3000);
 }
 
 void loop() {

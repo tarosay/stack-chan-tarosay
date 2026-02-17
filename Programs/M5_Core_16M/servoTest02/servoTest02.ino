@@ -15,8 +15,8 @@ static constexpr uint32_t DUTY_MAX = (1UL << RES_BITS) - 1;
 
 static constexpr uint8_t SERVO_X_PIN = 22;
 static constexpr uint8_t SERVO_Y_PIN = 21;
-static constexpr uint8_t CH_X = 0;
-static constexpr uint8_t CH_Y = 1;
+static constexpr uint8_t CH_X = 6;
+static constexpr uint8_t CH_Y = 5;
 
 static constexpr int MIN_US_X = 600;
 static constexpr int MAX_US_X = 2300;

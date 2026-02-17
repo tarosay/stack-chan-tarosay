@@ -7,8 +7,8 @@ static constexpr uint32_t DUTY_MAX = (1UL << RES_BITS) - 1;
 
 static constexpr uint8_t SERVO1_PIN = 21;  // Core Port.A
 static constexpr uint8_t SERVO2_PIN = 22;  // Core Port.A
-static constexpr uint8_t X = 0;
-static constexpr uint8_t Y = 1;
+static constexpr uint8_t X = 6;
+static constexpr uint8_t Y = 5;
 
 // SG90の一般的レンジ（あなたの動作実績に合わせて）
 static constexpr int MIN_US_X = 500;
@@ -56,15 +56,15 @@ void setup() {
 
 void loop() {
   servoWriteDeg(X, -90);
-  //servoWriteDeg(CH2, 90);
+  servoWriteDeg(Y, 90);
   delay(800);
   servoWriteDeg(X, 0);
-  //servoWriteDeg(CH2, 0);
+  servoWriteDeg(Y, 0);
   delay(800);
   servoWriteDeg(X, 90);
-  //servoWriteDeg(CH2, -90);
+  servoWriteDeg(Y, -90);
   delay(800);
   servoWriteDeg(X, 0);
-  //servoWriteDeg(CH2, 0);
+  servoWriteDeg(Y, 0);
   delay(2000);
 }
