@@ -1,0 +1,972 @@
+[
+    {
+        "id": "e5584292835fe577",
+        "type": "tab",
+        "label": "Discordボット",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4459a09788aff10b",
+        "type": "websocket in",
+        "z": "e5584292835fe577",
+        "name": "Discordに接続",
+        "server": "",
+        "client": "wscfg",
+        "x": 130,
+        "y": 80,
+        "wires": [
+            [
+                "5bc8367084c4c584"
+            ]
+        ]
+    },
+    {
+        "id": "cadf40610973128a",
+        "type": "websocket out",
+        "z": "e5584292835fe577",
+        "name": "Discord接続の保持",
+        "server": "",
+        "client": "wscfg",
+        "x": 590,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "5bc8367084c4c584",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "チャンネル読み込み",
+        "func": "// === 設定 ===\n//const TOKEN = 'MTQyNTEzNDU2MTUxOTQ2ODY0Ng.G4FK4g.gHDJ3LCLr_mjoQsga8nf5H8RDtwZscPWo3jbJo'\nconst CHANNEL_ID = '1425128928472727572'\nconst INTENTS = 1 /*Guilds*/ + 512 /*GuildMessages*/ + 32768 /*MessageContent*/; // = 33281\nconst MY_DEVICE_ID = \"M5-8\"; // ←このRasPiの担当IDに固定\n\nflow.set(\"MY_DEVICE_ID\", MY_DEVICE_ID)\n\n// === ユーティリティ ===\nfunction sendToWS(msgs) {\n    // 1つ目の出力は WebSocket OUT へ\n    node.send([].concat(msgs, [null]));\n}\nfunction forwardEvent(msg) {\n    // 2つ目の出力は アプリ側へ（Debugなど）\n    node.send([null, msg]);\n}\n\n// コンテキスト（接続ごとの状態）\nconst s = context.get('s') || null;              // 直近のシーケンス番号\nlet hbTimer = context.get('hbTimer') || null;    // setInterval のID\nlet hbInterval = context.get('hbInterval') || 0; // ms\n\n// 受信処理\nlet payload;\ntry {\n    payload = (typeof msg.payload === 'string') ? JSON.parse(msg.payload) : msg.payload;\n} catch (e) {\n    node.warn('JSON parse error');\n    return; // 無視\n}\n\n// Discord Gateway opcode で分岐\nconst op = payload.op;\nconst t = payload.t;   // イベント名 (DISPATCH のとき)\nconst d = payload.d;   // データ\nconst seq = payload.s;   // シーケンス番号\n\nif (seq !== undefined && seq !== null) {\n    context.set('s', seq);\n}\n\nswitch (op) {\n    case 10: { // HELLO\n        hbInterval = d.heartbeat_interval; // ms\n        context.set('hbInterval', hbInterval);\n        node.status({ fill: \"green\", shape: \"dot\", text: `HELLO interval=${hbInterval}ms` });\n\n        // 既存のタイマーを止める\n        if (hbTimer) { clearInterval(hbTimer); hbTimer = null; }\n\n        // HEARTBEAT送信タイマー開始\n        hbTimer = setInterval(() => {\n            const sNow = context.get('s') || null;\n            const hb = { op: 1, d: sNow }; // HEARTBEAT\n            sendToWS({ payload: JSON.stringify(hb) });\n        }, hbInterval);\n        context.set('hbTimer', hbTimer);\n\n        // IDENTIFY を送信\n        if (!TOKEN) {\n            node.error('DISCORD_TOKEN が設定されていません');\n            return;\n        }\n        const identify = {\n            op: 2,\n            d: {\n                token: `Bot ${TOKEN}`,\n                intents: INTENTS,\n                properties: { os: \"linux\", browser: \"nodered\", device: \"nodered\" }\n            }\n        };\n        sendToWS({ payload: JSON.stringify(identify) });\n        return; // ここで終了（下の共通処理は通さない）\n    }\n    case 11: { // HEARTBEAT ACK\n        node.status({ fill: \"green\", shape: \"ring\", text: \"HB ACK\" });\n        return;\n    }\n    case 9: { // INVALID SESSION\n        node.status({ fill: \"red\", shape: \"dot\", text: \"INVALID SESSION\" });\n        // 簡易: 再IDENTIFY（本来は RESUME を考慮）\n        const identify = {\n            op: 2,\n            d: {\n                token: `Bot ${TOKEN}`,\n                intents: INTENTS,\n                properties: { os: \"linux\", browser: \"nodered\", device: \"nodered\" }\n            }\n        };\n        sendToWS({ payload: JSON.stringify(identify) });\n        return;\n    }\n    case 7: { // RECONNECT 要求\n        node.status({ fill: \"yellow\", shape: \"dot\", text: \"RECONNECT requested\" });\n        // Node-REDのWSクライアントが自動再接続する想定。何もしない。\n        return;\n    }\n    case 0: { // DISPATCH（イベント）\n        if (t === 'READY') {\n            node.status({ fill: \"blue\", shape: \"dot\", text: `READY ${d.user?.username || ''}` });\n        }\n        if (t === 'MESSAGE_CREATE') {\n            // チャネルでフィルタ\n            if (!CHANNEL_ID || d.channel_id === CHANNEL_ID) {\n                forwardEvent({\n                    payload: {\n                        type: 'message',\n                        id: d.id,\n                        channel_id: d.channel_id,\n                        guild_id: d.guild_id,\n                        author: d.author?.username + '#' + d.author?.discriminator,\n                        content: d.content || '',\n                        timestamp: d.timestamp\n                    }\n                });\n            }\n        }\n        return;\n    }\n    default:\n        // そのまま生パケットを観察したい場合は下行のコメント解除\n        // forwardEvent({ payload });\n        return;\n}\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 80,
+        "wires": [
+            [
+                "cadf40610973128a"
+            ],
+            [
+                "6836c421b1b4231a"
+            ]
+        ]
+    },
+    {
+        "id": "6836c421b1b4231a",
+        "type": "change",
+        "z": "e5584292835fe577",
+        "name": "msg.content",
+        "rules": [
+            {
+                "t": "set",
+                "p": "content",
+                "pt": "msg",
+                "to": "payload.content",
+                "tot": "msg",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 130,
+        "y": 140,
+        "wires": [
+            [
+                "74729e068151b549",
+                "f7256fcfb7e9e0bf"
+            ]
+        ]
+    },
+    {
+        "id": "74729e068151b549",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "コマンド解析",
+        "func": "const now = Date.now();\nconst payload = (typeof msg.payload?.content === \"string\") ? msg.payload.content : msg.payload;\n\nfunction fail(reason) { node.warn(reason); return null; }\n\nmsg.my_device_id = flow.get(\"MY_DEVICE_ID\") || \"m5-a\"\n\n// payload must be string\nif (typeof payload !== \"string\") return fail(\"payload must be string\");\n\n// normalize newlines\nconst s = payload.replace(/\\r\\n/g, \"\\n\");\nconst lines = s.split(\"\\n\");\nconst headerRaw = (lines[0] ?? \"\").trim();\nconst text = (lines.length >= 2) ? lines.slice(1).join(\"\\n\") : \"\";\n\n// header must start with dot\nif (!headerRaw.startsWith(\".\")) return null; // ヘッダ無しは無視（仕様）\n\n// split tokens\nconst parts = headerRaw.split(\".\").filter(p => p.length > 0);\nif (parts.length < 1) return fail(\"device id missing\");\n\nconst device = parts[0].trim();\nif (device.toUpperCase() !== msg.my_device_id.toUpperCase()) return null; // 自分宛て以外は破棄\n\nconst tokens = parts.slice(1);\n\n// ------------------------------------------------------------\n// last-wins parse\n// ------------------------------------------------------------\nlet dStr = null;   // YYYY/MM/DD\nlet tStr = null;   // HH:MM:SSmsMMM / \nlet dtMs = null;   // number\n\n// move tokens (last-wins)\nlet xDeg = null;   // number (deg)\nlet yDeg = null;   // number (deg)\nlet mMs = null;   // number (ms)\n\n// face / mouth (last-wins)\nlet face = null;   // \"N\"|\"A\"|\"S\"|\"H\"|\"D\"|\"L\"\nlet mouth = null;  // 0..10\n\nfor (const tokRaw of tokens) {\n  const tok = String(tokRaw).trim();\n  if (!tok) continue;\n\n  // --- scheduling ---\n  if (/^d\\d{4}\\/\\d{2}\\/\\d{2}$/i.test(tok)) { dStr = tok.substring(1); continue; }\n  if (/^t\\d{1,2}:\\d{1,2}:\\d{1,2}(ms\\d{3})?$/i.test(tok)) { tStr = tok.substring(1); continue; }\n\n\n  if (/^dt\\d+(\\.\\d+)?s$/i.test(tok)) {\n    const sec = parseFloat(tok.substring(2, tok.length - 1));\n    dtMs = Math.round(sec * 1000);\n    continue;\n  }\n  if (/^dt\\d+ms$/i.test(tok)) {\n    dtMs = parseInt(tok.substring(2, tok.length - 2), 10);\n    continue;\n  }\n\n  // --- move (last-wins) ---\n  if (/^x-?\\d+$/i.test(tok)) { xDeg = parseInt(tok.substring(1), 10); continue; }\n  if (/^y-?\\d+$/i.test(tok)) { yDeg = parseInt(tok.substring(1), 10); continue; }\n  if (/^m\\d+$/i.test(tok)) { mMs = parseInt(tok.substring(1), 10); continue; }\n\n  // --- face (finalized set only: N,A,S,H,D,L) ---\n  const mf = /^f([NASHDL])$/i.exec(tok);\n  if (mf) { face = mf[1].toUpperCase(); continue; }\n\n  // --- mouth size oN (0..10 clamp) ---\n  const mo = /^o(-?\\d+)$/i.exec(tok);\n  if (mo) {\n    let v = parseInt(mo[1], 10);\n    if (Number.isNaN(v)) v = 0;\n    if (v < 0) v = 0;\n    if (v > 10) v = 10;\n    mouth = v;\n    continue;\n  }\n\n  // unknown tokens: ignore\n}\n\n// ------------------------------------------------------------\n// validation per spec (有効条件)\n// ------------------------------------------------------------\nconst hasText = (text.trim().length > 0);\nconst hasMove = (xDeg !== null) || (yDeg !== null) || (mMs !== null);\nconst hasFace = (face !== null);\nconst hasMouth = (mouth !== null);\n\nif (!hasText && !hasMove && !hasFace && !hasMouth) {\n  return fail(\"invalid: no text, no move, no face, no mouth\");\n}\n\n// ------------------------------------------------------------\n// schedule validation & compute runAtEpochMs\n// ------------------------------------------------------------\nconst hasAbs = (tStr !== null);\nconst hasRel = (dtMs !== null);\n\nif (hasAbs && hasRel) return fail(\"t and dt cannot coexist\");\nif (!hasAbs && !hasRel && dStr !== null) return fail(\"date-only is not allowed (t missing)\");\n\nlet runAtEpochMs;\nlet mode;\n\nif (!hasAbs && !hasRel) {\n  mode = \"asap\";\n  runAtEpochMs = now;\n} else if (hasRel) {\n  mode = \"rel\";\n  runAtEpochMs = now + dtMs;\n} else {\n  mode = \"abs\";\n\n  // date default = today JST\n  let yyyy, MM, dd;\n  if (dStr) {\n    [yyyy, MM, dd] = dStr.split(\"/\").map(v => parseInt(v, 10));\n  } else {\n    const jstNow = new Date(now + 9 * 3600 * 1000);\n    yyyy = jstNow.getUTCFullYear();\n    MM = jstNow.getUTCMonth() + 1;\n    dd = jstNow.getUTCDate();\n  }\n\n  const m1 = /^(\\d{1,2}):(\\d{1,2}):(\\d{1,2})(?:ms(\\d{3}))?$/.exec(tStr);\n  if (!m1) return fail(\"invalid t format\");\n\n  const HH = parseInt(m1[1], 10);\n  const mm = parseInt(m1[2], 10);\n  const SS = parseInt(m1[3], 10);\n  const ms = (m1[4] !== undefined) ? parseInt(m1[4], 10) : 0;\n\n  if (HH < 0 || HH > 23) return fail(\"invalid hour\");\n  if (mm < 0 || mm > 59) return fail(\"invalid minute\");\n  if (SS < 0 || SS > 59) return fail(\"invalid second\");\n\n  runAtEpochMs = Date.UTC(yyyy, MM - 1, dd, HH, mm, SS, ms) - 9 * 3600 * 1000;\n}\n\n// ------------------------------------------------------------\n// wav object: ONLY when hasText\n// ------------------------------------------------------------\nfunction toJstParts(epochMs) {\n  const d = new Date(epochMs + 9 * 3600 * 1000);\n  const Y = d.getUTCFullYear();\n  const M = String(d.getUTCMonth() + 1).padStart(2, \"0\");\n  const D = String(d.getUTCDate()).padStart(2, \"0\");\n  const h = String(d.getUTCHours()).padStart(2, \"0\");\n  const m = String(d.getUTCMinutes()).padStart(2, \"0\");\n  const s = String(d.getUTCSeconds()).padStart(2, \"0\");\n  const ms = String(d.getUTCMilliseconds()).padStart(3, \"0\");\n  return { Y, M, D, h, m, s, ms };\n}\n\nlet wav = null;\nif (hasText) {\n  if (mode === \"asap\") {\n    wav = { dir: \"/home/pi/common\", name: \"asap.wav\", name16: \"asap_16.wav\" };\n  } else {\n    const p = toJstParts(runAtEpochMs);\n    wav = {\n      dir: \"/home/pi/common\",\n      name: `${p.Y}${p.M}${p.D}${p.h}${p.m}${p.s}.${p.ms}.wav`,\n      name16: `${p.Y}${p.M}${p.D}${p.h}${p.m}${p.s}.${p.ms}_16.wav`\n    };\n  }\n}\n\n// ------------------------------------------------------------\n// output normalized payload\n// ------------------------------------------------------------\nmsg.payload = {\n  device,\n  text, // 本文なしなら空文字\n\n  schedule: { mode, runAtEpochMs },\n\n  // ★本文があるときだけ生成対象\n  wav, // hasText ? {dir,name,name16} : null\n\n  move: hasMove ? { x: xDeg, y: yDeg, m: mMs } : null,\n  face: hasFace ? face : null,\n  mouth: hasMouth ? mouth : null,\n\n  meta: { receivedAtEpochMs: now, headerRaw, tokensRaw: parts }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 140,
+        "wires": [
+            [
+                "a17ed420dee03bfb",
+                "da83ecef244c43c1"
+            ]
+        ]
+    },
+    {
+        "id": "eaf2fa00db6c6e91",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "audio_query",
+        "func": "msg.url = \"http://127.0.0.1:10101/audio_query\"\nmsg.url += \"?speaker=888753760\"\nmsg.url += \"&text=\" + encodeURIComponent(msg.payload.text);\nmsg.headers = {\n    \"Content-Type\": \"application/x-www-form-urlencoded\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 270,
+        "y": 200,
+        "wires": [
+            [
+                "73091b056d2601d3"
+            ]
+        ]
+    },
+    {
+        "id": "73091b056d2601d3",
+        "type": "http request",
+        "z": "e5584292835fe577",
+        "name": "audio_query",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 430,
+        "y": 200,
+        "wires": [
+            [
+                "bd0b20fd4ddab4a5"
+            ]
+        ]
+    },
+    {
+        "id": "bd0b20fd4ddab4a5",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "synthesis",
+        "func": "msg.url = \"http://127.0.0.1:10101/synthesis\"\nmsg.url += \"?speaker=888753760\"\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 120,
+        "y": 240,
+        "wires": [
+            [
+                "bb1a18db6f3dac26"
+            ]
+        ]
+    },
+    {
+        "id": "bb1a18db6f3dac26",
+        "type": "http request",
+        "z": "e5584292835fe577",
+        "name": "synthesis",
+        "method": "POST",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 260,
+        "y": 240,
+        "wires": [
+            [
+                "f49ff7ee835b0689"
+            ]
+        ]
+    },
+    {
+        "id": "f49ff7ee835b0689",
+        "type": "file",
+        "z": "e5584292835fe577",
+        "name": "save wav file",
+        "filename": "wavName",
+        "filenameType": "msg",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 430,
+        "y": 240,
+        "wires": [
+            [
+                "50a893e8f89c822e"
+            ]
+        ]
+    },
+    {
+        "id": "50a893e8f89c822e",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "16kHzに変換",
+        "func": "msg.payload = 'ffmpeg -y -i \"' + msg.wavName + '\"'\nmsg.payload += ' -ar 16000 -ac 1 -acodec pcm_s16le'\nmsg.payload += ' \"' + msg.wavName16 + '\"'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 130,
+        "y": 280,
+        "wires": [
+            [
+                "506d373b3be1719a"
+            ]
+        ]
+    },
+    {
+        "id": "506d373b3be1719a",
+        "type": "exec",
+        "z": "e5584292835fe577",
+        "command": "",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 450,
+        "y": 280,
+        "wires": [
+            [
+                "625dc27f62b2cf78"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "3e0a228c3a3ab148",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "debug 39",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "0aa393c40985a8da",
+        "type": "file in",
+        "z": "e5584292835fe577",
+        "name": "wav 読み込み",
+        "filename": "uploadfilepath",
+        "filenameType": "msg",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 140,
+        "y": 520,
+        "wires": [
+            [
+                "5a8951786973bce8"
+            ]
+        ]
+    },
+    {
+        "id": "5a8951786973bce8",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "wav解析",
+        "func": "const buf = msg.payload;\nif (!Buffer.isBuffer(buf)) {\n    node.error(\"msg.payload is not a Buffer\", msg);\n    return null;\n}\nif (buf.length < 44) {\n    node.error(`WAV too short: ${buf.length} bytes`, msg);\n    return null;\n}\nconst riff = buf.toString(\"ascii\", 0, 4);          // \"RIFF\"\nconst wave = buf.toString(\"ascii\", 8, 12);         // \"WAVE\"\nconst fmt = buf.toString(\"ascii\", 12, 16);        // \"fmt \"\nconst data = buf.toString(\"ascii\", 36, 40);        // \"data\" (※標準44Bヘッダの場合)\n\nconst header = {\n    riff,\n    riffSize: buf.readUInt32LE(4),                 // fileSize-8\n    wave,\n\n    fmtChunkId: fmt,\n    fmtChunkSize: buf.readUInt32LE(16),            // 通常16\n    audioFormat: buf.readUInt16LE(20),             // 1=PCM\n    numChannels: buf.readUInt16LE(22),\n    sampleRate: buf.readUInt32LE(24),\n    byteRate: buf.readUInt32LE(28),\n    blockAlign: buf.readUInt16LE(32),\n    bitsPerSample: buf.readUInt16LE(34),\n\n    dataChunkId: data,\n    dataSize: buf.readUInt32LE(40),\n\n    // 参考（方式Aで使うとき便利）\n    bytesPerSec: buf.readUInt32LE(24) * buf.readUInt16LE(22) * (buf.readUInt16LE(34) / 8),\n    headerBytes: 44,\n    dataOffset: 44\n};\n\n// PCM本体（ヘッダ44Bを除去）\nmsg.pcmBuffer = Buffer.from(buf.subarray(44));\n\n// JSON化（Node-REDではオブジェクトでOK。必要なら downstream で JSON node）\nmsg.payload = header;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 520,
+        "wires": [
+            [
+                "177a9a279b36428e"
+            ]
+        ]
+    },
+    {
+        "id": "6258d2716612b661",
+        "type": "mqtt out",
+        "z": "e5584292835fe577",
+        "name": "",
+        "topic": "",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "4d41ace42db280c3",
+        "x": 630,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "6a289083bcdd70cb",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "音声準備",
+        "func": "msg.wavName = msg.payload.wav.dir + \"/\" + msg.payload.wav.name\nmsg.wavName16 = msg.payload.wav.dir + \"/\" + msg.payload.wav.name16\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "eaf2fa00db6c6e91"
+            ]
+        ]
+    },
+    {
+        "id": "a17ed420dee03bfb",
+        "type": "change",
+        "z": "e5584292835fe577",
+        "name": "msg.metaData",
+        "rules": [
+            {
+                "t": "set",
+                "p": "metaData",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 480,
+        "y": 140,
+        "wires": [
+            [
+                "774b24e8fc73a327"
+            ]
+        ]
+    },
+    {
+        "id": "847f945861a684bb",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "Queue管理",
+        "func": "function fail(r) { node.warn(r); return [null, { payload: { error: r } }]; }\n\nconst now = Date.now();\nlet q = flow.get(\"playQueue\") || [];\nlet busy = flow.get(\"playBusy\") || false;\n\n//node.warn(q);\n//node.warn(busy);\n\n// ヘルパ\nfunction sortQ() { q.sort((a, b) => a.runAtEpochMs - b.runAtEpochMs); }\nfunction save() { flow.set(\"playQueue\", q); flow.set(\"playBusy\", busy); }\n\nif (msg.topic === \"enqueue\") {\n  const p = msg.payload;\n  if (!p?.schedule?.runAtEpochMs || !p?.device) {\n    return fail(\"enqueue payload invalid\");\n  }\n  const jobId = msg.jobId || `${p.device}:${p.wav.name16}`;\n\n  // 追加（後勝ちの重複排除をしたい場合はここで同jobIdを消す）\n  // 例：同jobIdがあれば消して最後勝ち\n  q = q.filter(it => it.jobId !== jobId);\n\n  q.push({\n    jobId,\n    runAtEpochMs: p.schedule.runAtEpochMs,\n    payload: p\n  });\n  sortQ();\n  save();\n\n  return [null, { payload: { enqueued: true, jobId, runAtEpochMs: p.schedule.runAtEpochMs, qlen: q.length } }];\n}\n\n// if (msg.topic === \"playing\") {\n//   // 再生開始を知らせる（必要ならjobIdも）\n//   busy = true;\n//   save();\n//   return [null, { payload: { playing: true, jobId: msg.jobId || null } }];\n// }\n\n// if (msg.topic === \"done\") {\n//   busy = false;\n//   save();\n//   return [null, { payload: { done: true, jobId: msg.jobId || null } }];\n// }\n\nif (msg.topic === \"tick\") {\n  if (busy) return null;         // 再生中は新規開始しない（直列再生）\n\n  if (q.length === 0) return null;\n\n  //node.warn(q[0].runAtEpochMs);\n  //node.warn(now);\n\n  // 期限到来判定（秒精度運用：now >= runAt で発火）\n  if (q[0].runAtEpochMs > now) return null;\n\n  const item = q.shift();\n  save();\n\n  // ここで busy を true にして「再生開始」扱いにするなら以下を有効化\n  // busy = true; save();\n\n  const out = {\n    jobId: item.jobId,\n    payload: item.payload\n  };\n\n  // 再生ノードへ渡す\n  msg.jobId = out.jobId;\n  msg.payload = out.payload;\n  return [msg, { payload: { dequeued: true, jobId: out.jobId, qlen: q.length } }];\n}\n\n// 未知topicは無視\nreturn null;\n",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 380,
+        "wires": [
+            [
+                "7ce3cdeece7195d2",
+                "03b7fac31ed29f85"
+            ],
+            [
+                "03b7fac31ed29f85"
+            ]
+        ]
+    },
+    {
+        "id": "fff06ca5e3ce8bfb",
+        "type": "inject",
+        "z": "e5584292835fe577",
+        "name": "Tick 1s",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.2",
+        "topic": "tick",
+        "x": 140,
+        "y": 400,
+        "wires": [
+            [
+                "847f945861a684bb"
+            ]
+        ]
+    },
+    {
+        "id": "03b7fac31ed29f85",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "Queue",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "20d982a24e01cfd2",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "キューに入れる",
+        "func": "function fail(r) { node.warn(r); return null; }\n\nconst p = msg.metaData; // ← 退避している正規化payload\nif (!p) return fail(\"metaData missing\");\n\nnode.warn(p);\n\nif (!p.device || !p.schedule?.runAtEpochMs) {\n    return fail(\"metaData missing required fields\");\n}\n\nmsg.topic = \"enqueue\";\nmsg.payload = p;                 // Queueノードへ渡す実体\nif (p.wav == null) {\n    msg.jobId = `${p.device}:${p.schedule?.runAtEpochMs}`;\n}\nelse {\n    msg.jobId = `${p.device}:${p.wav.name16}`;\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 360,
+        "wires": [
+            [
+                "3e0a228c3a3ab148",
+                "847f945861a684bb"
+            ]
+        ]
+    },
+    {
+        "id": "7ce3cdeece7195d2",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "処理の振り分け",
+        "func": "//return[表情, moveXY, 音声]\nlet p = msg.payload;\n\nlet out0 = null;\nlet out1 = null;\nlet out2 = null;\n\nif (p.face != null || p.mouth != null) {\n    const m0 = RED.util.cloneMessage(msg);\n    if (p.mouth != null) {\n        m0.payload.mouth = p.mouth / 10.0\n    }\n    out0 = m0;\n}\n\nif (p.move != null) {\n    const m1 = RED.util.cloneMessage(msg);\n    const move = p?.move;\n    const payload = {};\n    payload.cmd = \"move\"\n    payload.deviceId = p.device;\n    if (move?.x != null) payload.x = move.x;\n    if (move?.y != null) payload.y = move.y;\n    if (move?.m != null) {\n        payload.ms = move.m;\n    }\n    else {\n        payload.ms = 800\n    }\n\n    if (payload?.x != null || payload?.y != null) {\n        m1.payload = payload;\n        out1 = m1;\n    }\n}\n\nif (p.wav != null) {\n    const m2 = RED.util.cloneMessage(msg);\n    m2.uploadfilepath = p.wav.dir + \"/\" + p.wav.name16;\n    out2 = m2;\n}\n\nif (out0 === null && out1 === null && out2 === null) return null;\n\nreturn [out0, out1, out2];\n",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 160,
+        "y": 460,
+        "wires": [
+            [
+                "9071baa275875763"
+            ],
+            [
+                "b06f06635036a719",
+                "c1e85c94ab168185"
+            ],
+            [
+                "0aa393c40985a8da"
+            ]
+        ]
+    },
+    {
+        "id": "774b24e8fc73a327",
+        "type": "switch",
+        "z": "e5584292835fe577",
+        "name": "wavの有無",
+        "property": "payload.wav",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            },
+            {
+                "t": "null"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 650,
+        "y": 140,
+        "wires": [
+            [
+                "6a289083bcdd70cb"
+            ],
+            [
+                "625dc27f62b2cf78"
+            ]
+        ]
+    },
+    {
+        "id": "aef7a6db6cd50828",
+        "type": "link in",
+        "z": "e5584292835fe577",
+        "name": "キューに入れる",
+        "links": [
+            "625dc27f62b2cf78"
+        ],
+        "x": 85,
+        "y": 360,
+        "wires": [
+            [
+                "20d982a24e01cfd2"
+            ]
+        ]
+    },
+    {
+        "id": "625dc27f62b2cf78",
+        "type": "link out",
+        "z": "e5584292835fe577",
+        "name": "キューへ",
+        "mode": "link",
+        "links": [
+            "aef7a6db6cd50828"
+        ],
+        "x": 635,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "9071baa275875763",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "表情設定",
+        "func": "const DEFAULT_DEVICE_ID = \"m5-a\";\nconst ROOT = \"device\";\n\nmsg.deviceId = msg.payload?.device;\n\nfunction norm(v) {\n  return String(v || \"\").trim().toLowerCase();\n}\n\nconst faceMap = new Map([\n  [\"d\", \"doubt\"],\n  [\"n\", \"neutral\"],\n  [\"a\", \"angry\"],\n  [\"s\", \"sleepy\"],\n  [\"h\", \"happy\"],\n  [\"l\", \"sad\"],\n]);\n\nlet deviceId =\n  (typeof msg.deviceId === \"string\" && msg.deviceId.trim())\n    ? msg.deviceId.trim()\n    : DEFAULT_DEVICE_ID;\n\n// --- ここから複数 publish 対応 ---\nconst out = [];\n\n\n// 1) face/expr\n{\n  // face が無いなら何もしない\n  const faceRaw = msg.payload?.face;\n  const code = norm(faceRaw);\n  if (code) {\n    const expr = faceMap.get(code);\n    if (!expr) {\n      node.warn(`invalid face: ${faceRaw} (skip)`);\n    } else {\n      out.push({\n        topic: `${ROOT}/${deviceId}/face/expr/${expr}`,\n        payload: \"\",\n        qos: Number.isFinite(msg.qos) ? msg.qos : 0,\n        retain: false,\n      });\n      node.status({ text: `expr:${expr}` });\n    }\n  }\n}\n\n// 2) face/mouth / size  payload: \"0.65\"(0..1想定)\n{\n  const v = msg.payload?.mouth\n  if (v !== undefined && v !== null && String(v).trim() !== \"\") {\n    const f = Number(v);\n    if (!Number.isFinite(f)) {\n      node.warn(`invalid mouthSize: ${v} (skip)`);\n    } else {\n      // 0..1 に丸め（デバイス側でも丸めてるなら削ってOK）\n      let s = f;\n      if (s < 0) s = 0;\n      if (s > 1) s = 1;\n\n      out.push({\n        topic: `${ROOT}/${deviceId}/face/mouth/size`,\n        payload: String(s),\n        qos: Number.isFinite(msg.qos) ? msg.qos : 0,\n        retain: false,\n      });\n      node.status({ text: `mouth:${s}` });\n    }\n  }\n}\n\n// 何も出さないなら null\nif (out.length === 0) return null;\n\n// MQTT out へは複数メッセージを配列で返す\nreturn [out];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 440,
+        "wires": [
+            [
+                "e82e3dbd67916213",
+                "6258d2716612b661"
+            ]
+        ]
+    },
+    {
+        "id": "b06f06635036a719",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "ServoXY処理",
+        "func": "// Node-RED Function node: ServoXY (topic B方式)\n// Input : msg.payload = JSON object 例 {\"cmd\":\"move\",\"x\":20,\"y\":-10,\"ms\":350}\n// Output: msg.topic   = \"device/<id>/servoxy/<cmd>\"\n//         msg.payload = \"<args>\" (space-separated numbers)\n//\n// デバイス区別しない運用でも、topicの <id> は任意文字列でOK。\n// （M5側は device/+/servoxy/# を購読し、<id> は見ない設計）\n\nconst DEFAULT_DEVICE_ID = \"m5-a\";\nconst ROOT = \"device\";\n\n// ranges\nconst X_MIN = -90, X_MAX = 90;\nconst Y_MIN = -90, Y_MAX = 90;\nconst MS_MIN = 0, MS_MAX = 60000;\nconst DEGSP_MIN = 0, DEGSP_MAX = 2000;\n\nlet last_x = context.get('last_x') || 0;\nlet last_y = context.get('last_y') || 0;\n\n\n\nfunction clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }\nfunction asInt(v, name) {\n  if (typeof v === \"string\") v = v.trim();\n  const n = Number(v);\n  if (!Number.isFinite(n)) throw new Error(`${name} must be number`);\n  return Math.trunc(n);\n}\n\ntry {\n  // deviceId: msg.deviceId or msg.payload.deviceId (optional) or default\n  let deviceId = null;\n  if (typeof msg.deviceId === \"string\" && msg.deviceId.length) deviceId = msg.deviceId.trim();\n  else if (msg.payload && typeof msg.payload === \"object\" && typeof msg.payload.deviceId === \"string\" && msg.payload.deviceId.length)\n    deviceId = msg.payload.deviceId.trim();\n  else deviceId = DEFAULT_DEVICE_ID;\n\n  const p = msg.payload;\n  if (!p || typeof p !== \"object\") throw new Error(\"payload must be JSON object\");\n\n  const cmd = String(p.cmd || p.command || \"\").trim().toLowerCase();\n  if (!cmd) throw new Error(\"cmd is required\");\n\n  let payload = \"\";\n\n  if (cmd === \"move\") {\n    if (p.x == null) {\n      p.x = last_x\n    }\n    if (p.y == null) {\n      p.y = last_y\n    }\n    const x = clamp(asInt(p.x, \"x\"), X_MIN, X_MAX);\n    const y = clamp(asInt(p.y, \"y\"), Y_MIN, Y_MAX);\n    const ms = clamp(asInt(p.ms ?? p.duration, \"ms\"), MS_MIN, MS_MAX);\n    payload = `${x} ${y} ${ms}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n    context.set('last_x', x)\n    context.set('last_y', y)\n\n  } else if (cmd === \"stop\") {\n    payload = \"\";\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 1; // stop は QoS1 推奨\n\n  } else if (cmd === \"home\") {\n    const ms = clamp(asInt(p.ms ?? p.duration, \"ms\"), MS_MIN, MS_MAX);\n    payload = `${ms}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n\n  } else if (cmd === \"speed\") {\n    const sx = clamp(asInt(p.sx ?? p.degps_x, \"sx\"), DEGSP_MIN, DEGSP_MAX);\n    const sy = clamp(asInt(p.sy ?? p.degps_y, \"sy\"), DEGSP_MIN, DEGSP_MAX);\n    payload = `${sx} ${sy}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n\n  } else if (cmd === \"pulse\") {\n    // pulseは安全のため値域チェックは入れず、整数化だけ（必要ならclamp追加）\n    const minX = asInt(p.minX ?? p.min_us_x, \"minX\");\n    const maxX = asInt(p.maxX ?? p.max_us_x, \"maxX\");\n    const minY = asInt(p.minY ?? p.min_us_y, \"minY\");\n    const maxY = asInt(p.maxY ?? p.max_us_y, \"maxY\");\n    payload = `${minX} ${maxX} ${minY} ${maxY}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n\n  } else {\n    throw new Error(`unknown cmd: ${cmd}`);\n  }\n\n  msg.topic = `${ROOT}/${deviceId}/servoxy/${cmd}`;\n  msg.payload = payload;\n\n  node.status({ text: `${cmd} ${payload}`.trim() });\n  return msg;\n\n} catch (e) {\n  node.error(e.message, msg);\n  return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 480,
+        "wires": [
+            [
+                "6258d2716612b661"
+            ]
+        ]
+    },
+    {
+        "id": "e82e3dbd67916213",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "Queue",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "c1e85c94ab168185",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "Queue",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 390,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "58812ea282539bb0",
+        "type": "inject",
+        "z": "e5584292835fe577",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 660,
+        "wires": [
+            [
+                "5a3e46d24103f731"
+            ]
+        ]
+    },
+    {
+        "id": "5a3e46d24103f731",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "function 7",
+        "func": "const now = Date.now();\nlet q = flow.get(\"playQueue\") || [];\nlet busy = flow.get(\"playBusy\") || false;\n\nnode.warn(q);\nmsg.payload = q\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 660,
+        "wires": [
+            [
+                "61cf151a47fe71cb"
+            ]
+        ]
+    },
+    {
+        "id": "61cf151a47fe71cb",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "debug 12",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "bd8cf955a47661c7",
+        "type": "inject",
+        "z": "e5584292835fe577",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 720,
+        "wires": [
+            [
+                "22c14e1c43a09a2f"
+            ]
+        ]
+    },
+    {
+        "id": "a3ae052128248dbd",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "debug 38",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "22c14e1c43a09a2f",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "function 8",
+        "func": "const ms = Number(msg.payload);\nconst d = new Date(ms);\nmsg.jst = d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', hour12: false });\nmsg.utc = d.toISOString();\nreturn msg;\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 720,
+        "wires": [
+            [
+                "a3ae052128248dbd"
+            ]
+        ]
+    },
+    {
+        "id": "f68717345ad48f0f",
+        "type": "inject",
+        "z": "e5584292835fe577",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "こんにちは",
+        "payloadType": "str",
+        "x": 120,
+        "y": 820,
+        "wires": [
+            [
+                "e9be8009ed811032"
+            ]
+        ]
+    },
+    {
+        "id": "e9be8009ed811032",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "Discordに書き込む",
+        "func": "const TOKEN = 'MTQyNTEzNDU2MTUxOTQ2ODY0Ng.G8i-rk.uwGq96vUpldCiqJiVAqIo84UNjHPPX3rSkVnm0'\nconst CHANNEL_ID = '1425128928472727572'\n\n// 送信する本文\nconst text = msg.payload\n\n// HTTP request ノードへ渡す設定を全部ここで作る\nmsg.method = \"POST\";\nmsg.url = `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages`;\n\nmsg.headers = {\n  \"Authorization\": `Bot ${TOKEN}`,\n  \"Content-Type\": \"application/json\"\n};\n\n// Discordに送るJSONボディ\nmsg.payload = {\n  content: text,\n  // メンション暴発防止（必要なら）\n  allowed_mentions: { parse: [] }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 820,
+        "wires": [
+            [
+                "d203ca673d7ae1b8"
+            ]
+        ]
+    },
+    {
+        "id": "d203ca673d7ae1b8",
+        "type": "http request",
+        "z": "e5584292835fe577",
+        "name": "",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 490,
+        "y": 820,
+        "wires": [
+            [
+                "c3e608e7a6fe17bd"
+            ]
+        ]
+    },
+    {
+        "id": "c3e608e7a6fe17bd",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "debug 43",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "93be4675b9dbe646",
+        "type": "link in",
+        "z": "e5584292835fe577",
+        "name": "Discord書く",
+        "links": [
+            "5b8dd690fa2e5652"
+        ],
+        "x": 105,
+        "y": 780,
+        "wires": [
+            [
+                "e9be8009ed811032"
+            ]
+        ]
+    },
+    {
+        "id": "5b8dd690fa2e5652",
+        "type": "link out",
+        "z": "e5584292835fe577",
+        "name": "Discord書く",
+        "mode": "link",
+        "links": [
+            "93be4675b9dbe646"
+        ],
+        "x": 665,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "da83ecef244c43c1",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "Discordに返信",
+        "func": "let payload = \"<\" + msg.my_device_id + \">が、OK, 受け付けました！\\r\\n------\\r\\n\" + msg.content\nmsg.payload = payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 40,
+        "wires": [
+            [
+                "5b8dd690fa2e5652"
+            ]
+        ]
+    },
+    {
+        "id": "177a9a279b36428e",
+        "type": "function",
+        "z": "e5584292835fe577",
+        "name": "publish",
+        "func": "// Node-RED Function node: WAV(->pcmBuffer) を MQTT でストリーム送信\n// 前提:\n//   msg.payload   = WAVヘッダ情報オブジェクト { sampleRate, numChannels, bitsPerSample, ... }\n//   msg.pcmBuffer = PCM本体 Buffer（44Bヘッダ除去済み）\n//   ※もし msg.pcmbuffer になっている場合も吸収する\n\nconst CHUNK_BYTES = 4096;        // 4096〜8192 推奨\nconst PREBURST_CHUNKS = 6;      // 開始時に一気送り（プレバッファ）\nconst BASE_PREFIX = \"pcm16\";     // base topic prefix\nconst QOS_CTRL = 1;\nconst QOS_PCM = 0;\nconst BEGIN_GUARD_MS = 80;   // 50〜150msで調整（まず80ms推奨）\nconst END_GUARD_MS = 300; // まず300〜800msで\n\n// 入力取り出し\nconst hdr = msg.payload; // ヘッダ情報JSON（あなたの前段で作ったやつ）\nconst pcm = msg.pcmBuffer || msg.pcmbuffer;\n\nif (!hdr || typeof hdr !== \"object\") {\n    node.error(\"msg.payload (header JSON) is missing\", msg);\n    return null;\n}\nif (!Buffer.isBuffer(pcm)) {\n    node.error(\"msg.pcmBuffer (PCM Buffer) is missing or not a Buffer\", msg);\n    return null;\n}\n\nconst sr = hdr.sampleRate;\nconst ch = hdr.numChannels;\nconst bits = hdr.bitsPerSample;\n\nif (!Number.isFinite(sr) || !Number.isFinite(ch) || !Number.isFinite(bits)) {\n    node.error(\"header JSON must include sampleRate/numChannels/bitsPerSample\", msg);\n    return null;\n}\nif (bits !== 16) {\n    node.error(`Only PCM16 supported for now (bitsPerSample=${bits})`, msg);\n    return null;\n}\n\n// ファイル名（任意）\nlet name = \"rx.wav\";\nif (typeof msg.filename === \"string\" && msg.filename.length > 0) {\n    name = msg.filename.split(\"/\").pop();\n}\n\n// セッションID（streamId）\nconst sid = Date.now().toString(36) + \"-\" + Math.random().toString(36).slice(2, 8);\nconst BASE = `${BASE_PREFIX}/${sid}`;\n\n// 送信間隔を「音声時間」に合わせる\nconst bytesPerSec = sr * ch * (bits / 8);\nconst chunkMs = Math.max(1, Math.round(1000 * CHUNK_BYTES / bytesPerSec)); // 最低1ms\n\n// 送信ユーティリティ（MQTT out ノードへ渡す想定）\nfunction sendCtrl(obj, retain = false) {\n    node.send({\n        topic: `${BASE}/ctrl`,\n        qos: QOS_CTRL,\n        payload: JSON.stringify(obj)\n    });\n\n}\n\nfunction sendPcm(seq, part, flags) {\n    const h = Buffer.alloc(8);\n    h.writeUInt32LE(seq >>> 0, 0);\n    h.writeUInt16LE(part.length & 0xFFFF, 4);\n    h.writeUInt16LE(flags & 0xFFFF, 6);\n    node.send({\n        topic: `${BASE}/pcm`,\n        qos: QOS_PCM,\n        payload: Buffer.concat([h, part])\n    });\n}\n\n// 1) begin（ctrl）\nsendCtrl({\n    type: \"begin\",\n    sid,\n    name,\n    sr,\n    ch,\n    bits,\n    codec: \"pcm16\",\n    seq0: 0,\n    chunkBytes: CHUNK_BYTES,\n    pcmBytes: pcm.length,\n    ts: Date.now()\n}, false);\n\n// 2) pcm chunks\nlet seq = 0;\nlet sentChunks = 0;\n\nfor (let off = 0; off < pcm.length; off += CHUNK_BYTES) {\n    const part = pcm.subarray(off, Math.min(off + CHUNK_BYTES, pcm.length));\n    const isLast = (off + CHUNK_BYTES) >= pcm.length;\n    const flags = isLast ? 0x0002 : 0x0000; // 例: bit1=last\n\n    // プレバッファ分は即時、それ以降は chunkMs 間隔で送る\n    //const delay = (seq < PREBURST_CHUNKS) ? 0 : (seq - PREBURST_CHUNKS + 1) * chunkMs;\n    const delay = BEGIN_GUARD_MS + ((seq < PREBURST_CHUNKS) ? 0 : (seq - PREBURST_CHUNKS + 1) * chunkMs);\n    ((s, p, f) => {\n        setTimeout(() => {\n            sendPcm(s, p, f);\n            sentChunks++;\n        }, delay);\n    })(seq, part, flags);\n\n    seq++;\n}\n\n// 3) end（ctrl）\nconst endDelay =\n    BEGIN_GUARD_MS +\n    ((seq <= PREBURST_CHUNKS) ? 0 : (seq - PREBURST_CHUNKS + 2) * chunkMs) +\n    END_GUARD_MS;\n\nsetTimeout(() => {\n    sendCtrl({\n        type: \"end\",\n        sid,\n        lastSeq: seq - 1,\n        chunks: seq,\n        pcmBytes: pcm.length,\n        ts: Date.now()\n    });\n    node.status({ text: `sent ${seq} chunks, ${pcm.length} bytes, chunkMs=${chunkMs}ms` });\n}, endDelay);\n\nreturn null;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 520,
+        "wires": [
+            [
+                "6258d2716612b661"
+            ]
+        ]
+    },
+    {
+        "id": "f7256fcfb7e9e0bf",
+        "type": "debug",
+        "z": "e5584292835fe577",
+        "name": "debug 41",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 320,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "wscfg",
+        "type": "websocket-client",
+        "path": "wss://gateway.discord.gg/?v=10&encoding=json",
+        "tls": "",
+        "wholemsg": "false",
+        "hb": "0",
+        "subprotocol": "",
+        "headers": []
+    },
+    {
+        "id": "4d41ace42db280c3",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]
