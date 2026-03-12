@@ -1,0 +1,38 @@
+# M5Stack Core v2.61 / v2.7 用メモ
+# これらの機種はデフォルト設定では Flash が 4MB 扱いになっている
+# 本パーティション設定は、Flash 16MB 全域を使用するためのもの
+#
+# 【重要】Partitions.csv は .ino ファイルと同じフォルダに配置すること
+# （スケッチフォルダ直下に置く）
+#
+# 設定方法（初回のみ必要）:
+# 1. Arduino IDE の「Partition Scheme」を「Custom」に設定
+# 2. 「Flash Size」を「16MB」に設定
+# 3. 「Erase All Flash Before Sketch Upload」を Enable にする
+# 4. 上記設定で一度だけスケッチを書き込む
+#
+# ※ 初回書き込み後は「Erase All Flash Before Sketch Upload」は Disable に戻してよい
+#
+# ----------------------------------------------------------------------
+# Notes for M5Stack Core v2.6.1 / v2.7
+# These models are configured to use only 4MB of flash by default
+# This custom partition table enables usage of the full 16MB flash
+#
+# IMPORTANT: Place "partitions.csv" in the same folder as the .ino file
+# (directly inside the sketch folder)
+#
+# Setup procedure (required only once):
+# 1. Set "Partition Scheme" to "Custom" in Arduino IDE
+# 2. Set "Flash Size" to "16MB"
+# 3. Enable "Erase All Flash Before Sketch Upload"
+# 4. Upload the sketch once with the above settings
+#
+# After the first successful upload,
+# "Erase All Flash Before Sketch Upload" can be set back to Disable
+#
+# -- tarosay
+# Name,   Type, SubType,  Offset,   Size,     Flags
+nvs,      data, nvs,      0x9000,   0x6000,
+phy_init, data, phy,      0xF000,   0x1000,
+factory,  app,  factory,  0x10000,  0xFE0000,
+coredump, data, coredump, 0xFF0000, 0x10000,

@@ -1,0 +1,1856 @@
+[
+    {
+        "id": "52fd92af6f6ef177",
+        "type": "tab",
+        "label": "MyIDの応答・管理",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "310729bedef0d4a4",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-1",
+        "payloadType": "str",
+        "x": 90,
+        "y": 280,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "ce509c2e31c34f22",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ラズパイIP検索",
+        "func": "const MAGIC = \"DISCOVER_MQTT_V1\";\nconst ID = msg.payload;          // 探したいID\nconst SERVICE_PORT = 45678;\nconst TIMEOUT_MS = 1200;\n\nmsg.payload =\n    `python3 - <<'PY'\nimport socket, time\n\nMAGIC=${JSON.stringify(MAGIC)}\nID=${JSON.stringify(ID)}\nSERVICE_PORT=${SERVICE_PORT}\nTIMEOUT=${TIMEOUT_MS}/1000.0\n\ndef get_local_ip():\n    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\n    try:\n        # 実際には送信しない。自分が使う送信元IPを得るため\n        s.connect((\"8.8.8.8\", 80))\n        return s.getsockname()[0]\n    finally:\n        s.close()\n\ndef calc_broadcast(ip):\n    # /24 前提: 192.168.100.23 -> 192.168.100.255\n    p = ip.split(\".\")\n    if len(p) != 4:\n        return \"255.255.255.255\"\n    return f\"{p[0]}.{p[1]}.{p[2]}.255\"\n\nlocal_ip = get_local_ip()\nBCAST = calc_broadcast(local_ip)\n\ns = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\ns.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)\ns.settimeout(TIMEOUT)\ns.bind((\"\", 0))  # M5の udp.begin(0) と同じ\n\nquery = f\"{MAGIC}:{ID}\".encode(\"utf-8\")\ns.sendto(query, (BCAST, SERVICE_PORT))\n\nexpect = \":\" + ID\nt0 = time.time()\n\nwhile True:\n    try:\n        data, (ip, port) = s.recvfrom(2048)\n    except socket.timeout:\n        print(\"\")\n        break\n\n    txt = data.decode(\"utf-8\", \"ignore\").strip()\n    if txt.endswith(expect):\n        print(ip)\n        break\n\n    if time.time() - t0 > TIMEOUT:\n        print(\"\")\n        break\n\ns.close()\nPY`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 260,
+        "y": 340,
+        "wires": [
+            [
+                "e81750910a77bc93"
+            ]
+        ]
+    },
+    {
+        "id": "07c96fac1181bc60",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 44",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "e81750910a77bc93",
+        "type": "exec",
+        "z": "52fd92af6f6ef177",
+        "command": "",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 410,
+        "y": 340,
+        "wires": [
+            [
+                "07c96fac1181bc60"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7464277661c4f756",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-2",
+        "payloadType": "str",
+        "x": 250,
+        "y": 280,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "038282f9e23557a5",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-3",
+        "payloadType": "str",
+        "x": 410,
+        "y": 280,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "d87233fcf510fe40",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-4",
+        "payloadType": "str",
+        "x": 90,
+        "y": 320,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "f9126715b546343e",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-5",
+        "payloadType": "str",
+        "x": 90,
+        "y": 360,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "23d07565b8f7f641",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-6",
+        "payloadType": "str",
+        "x": 90,
+        "y": 400,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "0ce3f6c08be0ed17",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-7",
+        "payloadType": "str",
+        "x": 250,
+        "y": 400,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "7fc4d5bfccc2080d",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-8",
+        "payloadType": "str",
+        "x": 410,
+        "y": 400,
+        "wires": [
+            [
+                "ce509c2e31c34f22"
+            ]
+        ]
+    },
+    {
+        "id": "836ef745ecb75a0a",
+        "type": "udp in",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "iface": "",
+        "port": "46001",
+        "ipv": "udp4",
+        "multicast": "false",
+        "group": "",
+        "datatype": "utf8",
+        "x": 100,
+        "y": 560,
+        "wires": [
+            [
+                "13632207974c7c5e"
+            ]
+        ]
+    },
+    {
+        "id": "13632207974c7c5e",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ラズパイからの返事を集計します",
+        "func": "const text = msg.payload;\nconst parts = text.split(\"|\");\n\nif (parts.length < 3) return null;\nif (parts[0] !== \"ID_LIST_RSP\") return null;\nif (parts[1] !== flow.get(\"nonce\")) return null;\n\nconst id = parts[2];\n\nconst idmap = flow.get(\"idmap\") || {};\n// 構造を変更\nidmap[id] = {\n    exists: true\n};\n\nflow.set(\"idmap\", idmap);\n\nmsg.payload = Object.keys(idmap).sort();\n\n// ★配列ではなく、idmapそのものを出す（確認用）\nmsg.payload = idmap;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 560,
+        "wires": [
+            [
+                "8172a0ae91a4135a"
+            ]
+        ]
+    },
+    {
+        "id": "8172a0ae91a4135a",
+        "type": "trigger",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "op1": "0",
+        "op2": "{\"done\":true}",
+        "op1type": "str",
+        "op2type": "json",
+        "duration": "300",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "ms",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 600,
+        "y": 560,
+        "wires": [
+            [
+                "ce8e73fcee556d9b"
+            ]
+        ]
+    },
+    {
+        "id": "5ba09b30b720900e",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "idmapに収納します",
+        "func": "if (!msg.payload) return null;\n\nconst idmap = flow.get(\"idmap\") || {};\nflow.set(\"idmap\", idmap)\nmsg.payload = idmap;\nreturn msg;\n\n//const idmap = flow.get(\"idmap\") || {};\n//msg.payload = idmap;   // {\"M5-8\":{\"exists\":true,\"IP\":\"...\"}, ...}\n//return msg;\n\n\n//if (!msg.payload || msg.payload.done !== true) return null;\n\n//const idmap = flow.get(\"idmap\") || {};\n//msg.payload = Object.keys(idmap).sort().map(id => ({\n//  id,\n//  ip: idmap[id]?.IP\n//}));\n//return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 640,
+        "wires": [
+            [
+                "1429b94b04449156"
+            ]
+        ]
+    },
+    {
+        "id": "1429b94b04449156",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 37",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "935975506de5f362",
+        "type": "udp in",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "iface": "",
+        "port": "46000",
+        "ipv": "udp4",
+        "multicast": "false",
+        "group": "",
+        "datatype": "utf8",
+        "x": 80,
+        "y": 740,
+        "wires": [
+            [
+                "469143a9a4d8fd23",
+                "a52296ba1319d56f"
+            ]
+        ]
+    },
+    {
+        "id": "469143a9a4d8fd23",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "自分のIDを返信します",
+        "func": "const text = msg.payload;\nconst parts = text.split(\"|\");\nconst myId = flow.get(\"MyID\") || \"M5-a\"\n\nif (parts.length !== 2) return null;\nif (parts[0] !== \"ID_LIST_REQ\") return null;\n\nconst nonce = parts[1];\n\n// 返信先IP（送信元IP）\nconst replyIp = msg.ip;\nif (!replyIp) return null;\n\nmsg.ip = replyIp;\nmsg.port = 46001;\nmsg.payload = \"ID_LIST_RSP|\" + nonce + \"|\" + myId \n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 740,
+        "wires": [
+            [
+                "863f4ad405415106",
+                "c2baf8efefdd6076"
+            ]
+        ]
+    },
+    {
+        "id": "863f4ad405415106",
+        "type": "udp out",
+        "z": "52fd92af6f6ef177",
+        "name": "udp 46001",
+        "addr": "",
+        "iface": "",
+        "port": "",
+        "ipv": "udp4",
+        "outport": "",
+        "base64": false,
+        "multicast": "false",
+        "x": 490,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "0179890091514013",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "ID一覧の確認",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 110,
+        "y": 860,
+        "wires": [
+            [
+                "08ec6756609e8048"
+            ]
+        ]
+    },
+    {
+        "id": "3728f6638bc3e629",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 48",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "08ec6756609e8048",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ID一覧の取得",
+        "func": "msg.payload = flow.get(\"idmap\")\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 860,
+        "wires": [
+            [
+                "3728f6638bc3e629"
+            ]
+        ]
+    },
+    {
+        "id": "1f4da7a5504469b5",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "900",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "M5-8",
+        "payloadType": "str",
+        "x": 90,
+        "y": 80,
+        "wires": [
+            [
+                "034dd2c53c0c2067"
+            ]
+        ]
+    },
+    {
+        "id": "034dd2c53c0c2067",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "flow.set(\"MyID\", id)",
+        "func": "const id = msg.payload\nflow.set(\"MyID\", id);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 80,
+        "wires": [
+            [
+                "2ec08b9d439aeee3"
+            ]
+        ]
+    },
+    {
+        "id": "2ec08b9d439aeee3",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 49",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ce8e73fcee556d9b",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ID配列を作る",
+        "func": "if (!msg.payload || msg.payload.done !== true) return null;\n\nconst idmap = flow.get(\"idmap\") || {};\n\nconst ids = Object.keys(idmap).sort();\n\nmsg.payload = Object.keys(idmap).sort();   // [\"M5-7\",\"M5-8\",...]\n\n\n//msg.payload = {\n//  ids,\n//  isArray: Array.isArray(ids),\n//  len: ids.length\n//};\n\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 120,
+        "y": 600,
+        "wires": [
+            [
+                "a1207a091a2360fe"
+            ]
+        ]
+    },
+    {
+        "id": "a1207a091a2360fe",
+        "type": "split",
+        "z": "52fd92af6f6ef177",
+        "name": "配列取り出し",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 300,
+        "y": 600,
+        "wires": [
+            [
+                "213287207e15ae71"
+            ]
+        ]
+    },
+    {
+        "id": "213287207e15ae71",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "reqId退避",
+        "func": "msg.reqId = msg.payload;   // いま流れてきたID（例 \"M5-7\"）を保存\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 600,
+        "wires": [
+            [
+                "f8ffa38ee90ba79d"
+            ]
+        ]
+    },
+    {
+        "id": "0589d239589a7e42",
+        "type": "exec",
+        "z": "52fd92af6f6ef177",
+        "command": "",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 90,
+        "y": 640,
+        "wires": [
+            [
+                "47a3e12ccdc7545f"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "47a3e12ccdc7545f",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "idmapへIP保存",
+        "func": "const id = msg.reqId;\nconst ip = (msg.payload || \"\").toString().trim();\n\n// 取得できてない（空）なら何もしない\nif (!id || !ip) return null;\n\nlet idmap = flow.get(\"idmap\") || {};\nidmap[id] = { ...(idmap[id] || {}), exists: true, IP: ip };\n\nflow.set(\"idmap\", idmap);\nmsg.payload = idmap;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 260,
+        "y": 640,
+        "wires": [
+            [
+                "5ba09b30b720900e"
+            ]
+        ]
+    },
+    {
+        "id": "8ebdcfe52b9daecd",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "ID一覧の削除",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 110,
+        "y": 900,
+        "wires": [
+            [
+                "8fc12de26935a150"
+            ]
+        ]
+    },
+    {
+        "id": "8fc12de26935a150",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ID一覧を削除します",
+        "func": "flow.set(\"idmap\",{})\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 900,
+        "wires": [
+            [
+                "93f03e5b955404a3"
+            ]
+        ]
+    },
+    {
+        "id": "93f03e5b955404a3",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 52",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "e24abbe0cb8f9235",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "MQTT:1883 を返す",
+        "func": "const MAGIC = \"DISCOVER_MQTT_V1\";\nconst MyID = flow.get(\"MyID\") || \"M5-a\"\n\nnode.warn(msg);\n\nlet s;\nif (Buffer.isBuffer(msg.payload)) {\n    s = msg.payload.toString(\"utf8\").trim();\n} else {\n    s = String(msg.payload).trim();\n}\n\n//node.warn(s);\n\nif (!s.startsWith(MAGIC)) return null;\n\n// 形式: \"DISCOVER_MQTT_V1:<id>\"\nlet id = \"\";\nconst rest = s.slice(MAGIC.length).trim();\nif (rest.startsWith(\":\")) id = rest.slice(1).trim();\n\n// ID無しは切り捨て\nif (!id) return null;\n\n//IDがMyIDと違ったら切り捨て\nif (id != MyID) return null;\n\n// 返信にIDを付与\nmsg.payload = Buffer.from(`MQTT:1883:${id}`, \"utf8\");\n\n// 送信先＝受信元に返す\nconst ip = msg.ip || msg.remoteAddress || (msg._session && msg._session.remoteAddress);\nconst port = msg.port || msg.remotePort || (msg._session && msg._session.remotePort);\nmsg.ip = ip;\nmsg.port = port;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 180,
+        "wires": [
+            [
+                "9daf1a22f8482ed7",
+                "9060788eadd6d96c"
+            ]
+        ]
+    },
+    {
+        "id": "9daf1a22f8482ed7",
+        "type": "udp out",
+        "z": "52fd92af6f6ef177",
+        "name": "udp 45678",
+        "addr": "",
+        "iface": "",
+        "port": "",
+        "ipv": "udp4",
+        "outport": "",
+        "base64": false,
+        "multicast": "false",
+        "x": 510,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "9060788eadd6d96c",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 39",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "c2fb48011c084546",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "接続されているラズパイのMyIDとIPアドレスを取得します",
+        "info": "",
+        "x": 230,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "52ac39e86f510c86",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "MyIDを聞かれたときに、MyIDを送り返します",
+        "info": "",
+        "x": 190,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "d2b7596d161f98f0",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "IDを指定されて呼びかけられたら返します",
+        "info": "",
+        "x": 180,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "b0ad37903bb17d92",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "MyIDをflowにセットします",
+        "info": "",
+        "x": 130,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "aed0ff517ef96f87",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "ID一覧とID一覧データの削除",
+        "info": "",
+        "x": 140,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "f8ffa38ee90ba79d",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ラズパイIP検索",
+        "func": "const MAGIC = \"DISCOVER_MQTT_V1\";\nconst ID = msg.payload;          // 探したいID\nconst SERVICE_PORT = 45678;\nconst TIMEOUT_MS = 1200;\n\nmsg.payload =\n    `python3 - <<'PY'\nimport socket, time\n\nMAGIC=${JSON.stringify(MAGIC)}\nID=${JSON.stringify(ID)}\nSERVICE_PORT=${SERVICE_PORT}\nTIMEOUT=${TIMEOUT_MS}/1000.0\n\ndef get_local_ip():\n    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\n    try:\n        # 実際には送信しない。自分が使う送信元IPを得るため\n        s.connect((\"8.8.8.8\", 80))\n        return s.getsockname()[0]\n    finally:\n        s.close()\n\ndef calc_broadcast(ip):\n    # /24 前提: 192.168.100.23 -> 192.168.100.255\n    p = ip.split(\".\")\n    if len(p) != 4:\n        return \"255.255.255.255\"\n    return f\"{p[0]}.{p[1]}.{p[2]}.255\"\n\nlocal_ip = get_local_ip()\nBCAST = calc_broadcast(local_ip)\n\ns = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\ns.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)\ns.settimeout(TIMEOUT)\ns.bind((\"\", 0))  # M5の udp.begin(0) と同じ\n\nquery = f\"{MAGIC}:{ID}\".encode(\"utf-8\")\ns.sendto(query, (BCAST, SERVICE_PORT))\n\nexpect = \":\" + ID\nt0 = time.time()\n\nwhile True:\n    try:\n        data, (ip, port) = s.recvfrom(2048)\n    except socket.timeout:\n        print(\"\")\n        break\n\n    txt = data.decode(\"utf-8\", \"ignore\").strip()\n    if txt.endswith(expect):\n        print(ip)\n        break\n\n    if time.time() - t0 > TIMEOUT:\n        print(\"\")\n        break\n\ns.close()\nPY`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 600,
+        "wires": [
+            [
+                "0589d239589a7e42"
+            ]
+        ]
+    },
+    {
+        "id": "c81722901be1e5e8",
+        "type": "mqtt in",
+        "z": "52fd92af6f6ef177",
+        "name": "chat/guild/channel",
+        "topic": "chat/+/+",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "4d41ace42db280c3",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 1020,
+        "wires": [
+            [
+                "780cb4ae324afaf2"
+            ]
+        ]
+    },
+    {
+        "id": "780cb4ae324afaf2",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "コマンド解析",
+        "func": "const now = Date.now();\nconst payload = msg.payload;\n\nfunction fail(reason) { node.warn(reason); return null; }\n\nmsg.my_device_id = flow.get(\"MyID\") || \"m5-a\"\n\n// payload must be string\nif (typeof payload !== \"string\") return fail(\"payload must be string\");\n\n// normalize newlines\nconst s = payload.replace(/\\r\\n/g, \"\\n\");\nconst lines = s.split(\"\\n\");\nconst headerRaw = (lines[0] ?? \"\").trim();\nconst text = (lines.length >= 2) ? lines.slice(1).join(\"\\n\") : \"\";\n\n// header must start with dot\nif (!headerRaw.startsWith(\".\")) return null; // ヘッダ無しは無視（仕様）\n\n// split tokens\nconst parts = headerRaw.split(\".\").filter(p => p.length > 0);\nif (parts.length < 1) return fail(\"device id missing\");\n\nconst device = parts[0].trim();\nif (device.toUpperCase() !== msg.my_device_id.toUpperCase()) return null; // 自分宛て以外は破棄\n\nconst tokens = parts.slice(1);\n\n// ------------------------------------------------------------\n// last-wins parse\n// ------------------------------------------------------------\nlet dStr = null;   // YYYY/MM/DD\nlet tStr = null;   // HH:MM:SSmsMMM / \nlet dtMs = null;   // number\nlet vol = null;    // 0..255\n\n// move tokens (last-wins)\nlet xDeg = null;   // number (deg)\nlet yDeg = null;   // number (deg)\nlet mMs = null;    // number (ms)\n\n// face / mouth (last-wins)\nlet face = null;   // \"N\"|\"A\"|\"S\"|\"H\"|\"D\"|\"L\"\nlet mouth = null;  // 0..10\n\n// power\nlet poweroff = false;\n\nfor (const tokRaw of tokens) {\n  const tok = String(tokRaw).trim();\n  if (!tok) continue;\n\n  // --- scheduling ---\n  if (/^d\\d{4}\\/\\d{1,2}\\/\\d{1,2}$/i.test(tok)) { dStr = tok.substring(1); continue; }\n  if (/^t\\d{1,2}:\\d{1,2}:\\d{1,2}(ms\\d{3})?$/i.test(tok)) { tStr = tok.substring(1); continue; }\n\n  // --- dt (rel): dtNsMms / dtNs / dtNms  ※小数禁止 ---\n  // dt3s500ms\n  const mdt1 = /^dt(\\d+)s(\\d+)ms$/i.exec(tok);\n  if (mdt1) {\n    const sec = parseInt(mdt1[1], 10);\n    const ms = parseInt(mdt1[2], 10);\n    if (ms < 0 || ms > 999) return fail(\"invalid dt ms (0..999)\");\n    dtMs = sec * 1000 + ms;\n    continue;\n  }\n\n  // dt2s\n  const mdt2 = /^dt(\\d+)s$/i.exec(tok);\n  if (mdt2) {\n    const sec = parseInt(mdt2[1], 10);\n    dtMs = sec * 1000;\n    continue;\n  }\n\n  // dt500ms\n  const mdt3 = /^dt(\\d+)ms$/i.exec(tok);\n  if (mdt3) {\n    dtMs = parseInt(mdt3[1], 10);\n    continue;\n  }\n\n  // --- move (last-wins) ---\n  if (/^x-?\\d+$/i.test(tok)) { xDeg = parseInt(tok.substring(1), 10); continue; }\n  if (/^y-?\\d+$/i.test(tok)) { yDeg = parseInt(tok.substring(1), 10); continue; }\n  if (/^m\\d+$/i.test(tok)) { mMs = parseInt(tok.substring(1), 10); continue; }\n\n  // --- face (finalized set only: N,A,S,H,D,L) ---\n  const mf = /^f([NASHDL])$/i.exec(tok);\n  if (mf) { face = mf[1].toUpperCase(); continue; }\n\n  // --- mouth size oN (0..10 clamp) ---\n  const mo = /^o(-?\\d+)$/i.exec(tok);\n  if (mo) {\n    let v = parseInt(mo[1], 10);\n    if (Number.isNaN(v)) v = 0;\n    if (v < 0) v = 0;\n    if (v > 10) v = 10;\n    mouth = v;\n    continue;\n  }\n\n  // --- volume vN (0..10 -> 0..255, floor(N*25.5), last-wins) ---\n  const mv = /^v(\\d{1,2})$/i.exec(tok);\n  if (mv) {\n    let level = parseInt(mv[1], 10);\n    if (Number.isNaN(level)) level = 0;\n    if (level < 0) level = 0;\n    if (level > 10) level = 10;\n    vol = Math.floor(level * 25.5);  // v5 => 127, v10 => 255\n    continue;\n  }\n\n  // --- power ---\n  if (/^poweroff$/i.test(tok)) {\n    poweroff = true;\n    continue;\n  }\n\n  // unknown tokens: ignore\n}\n\n// ------------------------------------------------------------\n// validation per spec (有効条件)\n// ------------------------------------------------------------\nconst hasText = (text.trim().length > 0);\nconst hasMove = (xDeg !== null) || (yDeg !== null) || (mMs !== null);\nconst hasFace = (face !== null);\nconst hasMouth = (mouth !== null);\nconst hasVol = (vol !== null);\nconst hasPoweroff = (poweroff === true);\n\nif (!hasText && !hasMove && !hasFace && !hasMouth && !hasVol && !hasPoweroff) {\n  return fail(\"invalid: no text, no move, no face, no mouth, no vol, no poweroff\");\n}\n\n// ------------------------------------------------------------\n// schedule validation & compute runAtEpochMs\n// ------------------------------------------------------------\nconst hasAbs = (tStr !== null);\nconst hasRel = (dtMs !== null);\n\nif (hasAbs && hasRel) return fail(\"t and dt cannot coexist\");\nif (!hasAbs && !hasRel && dStr !== null) return fail(\"date-only is not allowed (t missing)\");\n\nlet runAtEpochMs;\nlet mode;\n\nif (!hasAbs && !hasRel) {\n  mode = \"asap\";\n  runAtEpochMs = now;\n} else if (hasRel) {\n  mode = \"rel\";\n  runAtEpochMs = now + dtMs;\n} else {\n  mode = \"abs\";\n\n  // date default = today JST\n  let yyyy, MM, dd;\n  if (dStr) {\n    [yyyy, MM, dd] = dStr.split(\"/\").map(v => parseInt(v, 10));\n  } else {\n    const jstNow = new Date(now + 9 * 3600 * 1000);\n    yyyy = jstNow.getUTCFullYear();\n    MM = jstNow.getUTCMonth() + 1;\n    dd = jstNow.getUTCDate();\n  }\n\n  const m1 = /^(\\d{1,2}):(\\d{1,2}):(\\d{1,2})(?:ms(\\d{3}))?$/.exec(tStr);\n  if (!m1) return fail(\"invalid t format\");\n\n  const HH = parseInt(m1[1], 10);\n  const mm = parseInt(m1[2], 10);\n  const SS = parseInt(m1[3], 10);\n  const ms = (m1[4] !== undefined) ? parseInt(m1[4], 10) : 0;\n\n  if (HH < 0 || HH > 23) return fail(\"invalid hour\");\n  if (mm < 0 || mm > 59) return fail(\"invalid minute\");\n  if (SS < 0 || SS > 59) return fail(\"invalid second\");\n\n  runAtEpochMs = Date.UTC(yyyy, MM - 1, dd, HH, mm, SS, ms) - 9 * 3600 * 1000;\n}\n\n// ------------------------------------------------------------\n// wav object: ONLY when hasText\n// ------------------------------------------------------------\nfunction toJstParts(epochMs) {\n  const d = new Date(epochMs + 9 * 3600 * 1000);\n  const Y = d.getUTCFullYear();\n  const M = String(d.getUTCMonth() + 1).padStart(2, \"0\");\n  const D = String(d.getUTCDate()).padStart(2, \"0\");\n  const h = String(d.getUTCHours()).padStart(2, \"0\");\n  const m = String(d.getUTCMinutes()).padStart(2, \"0\");\n  const s = String(d.getUTCSeconds()).padStart(2, \"0\");\n  const ms = String(d.getUTCMilliseconds()).padStart(3, \"0\");\n  return { Y, M, D, h, m, s, ms };\n}\n\nlet wav = null;\nif (hasText) {\n  if (mode === \"asap\") {\n    wav = { dir: \"/home/pi/common\", name: \"asap.wav\", name16: \"asap_16.wav\" };\n  } else {\n    const p = toJstParts(runAtEpochMs);\n    wav = {\n      dir: \"/home/pi/common\",\n      name: `${p.Y}${p.M}${p.D}${p.h}${p.m}${p.s}.${p.ms}.wav`,\n      name16: `${p.Y}${p.M}${p.D}${p.h}${p.m}${p.s}.${p.ms}_16.wav`\n    };\n  }\n}\n\n// ------------------------------------------------------------\n// output normalized payload\n// ------------------------------------------------------------\nmsg.payload = {\n  device,\n  text, // 本文なしなら空文字\n\n  schedule: { mode, runAtEpochMs },\n\n  // ★本文があるときだけ生成対象\n  wav, // hasText ? {dir,name,name16} : null\n\n  move: hasMove ? { x: xDeg, y: yDeg, m: mMs } : null,\n  face: hasFace ? face : null,\n  mouth: hasMouth ? mouth : null,\n  vol: hasVol ? vol : null,\n  poweroff: hasPoweroff ? true : null,\n\n  meta: { receivedAtEpochMs: now, headerRaw, tokensRaw: parts }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 1020,
+        "wires": [
+            [
+                "bc6766aefb185ac8"
+            ]
+        ]
+    },
+    {
+        "id": "bc6766aefb185ac8",
+        "type": "change",
+        "z": "52fd92af6f6ef177",
+        "name": "msg.metaData",
+        "rules": [
+            {
+                "t": "set",
+                "p": "metaData",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 1020,
+        "wires": [
+            [
+                "6c8ba5d65d24c0cd",
+                "306bebd24b4843b2"
+            ]
+        ]
+    },
+    {
+        "id": "6c8ba5d65d24c0cd",
+        "type": "switch",
+        "z": "52fd92af6f6ef177",
+        "name": "wavの有無",
+        "property": "payload.wav",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            },
+            {
+                "t": "null"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 670,
+        "y": 1020,
+        "wires": [
+            [
+                "24291b803fe5d828"
+            ],
+            [
+                "b3c7b15671a53179"
+            ]
+        ]
+    },
+    {
+        "id": "24291b803fe5d828",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "音声準備",
+        "func": "msg.wavName = msg.payload.wav.dir + \"/\" + msg.payload.wav.name\nmsg.wavName16 = msg.payload.wav.dir + \"/\" + msg.payload.wav.name16\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 100,
+        "y": 1080,
+        "wires": [
+            [
+                "9729397606614fbf"
+            ]
+        ]
+    },
+    {
+        "id": "b3c7b15671a53179",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "キューに入れる",
+        "func": "function fail(r) { node.warn(r); return null; }\n\nconst p = msg.metaData; // ← 退避している正規化payload\nif (!p) return fail(\"metaData missing\");\n\nnode.warn(p);\n\nif (!p.device || !p.schedule?.runAtEpochMs) {\n    return fail(\"metaData missing required fields\");\n}\n\nmsg.topic = \"enqueue\";\nmsg.payload = p;                 // Queueノードへ渡す実体\nif (p.wav == null) {\n    msg.jobId = `${p.device}:${p.schedule?.runAtEpochMs}`;\n}\nelse {\n    msg.jobId = `${p.device}:${p.wav.name16}`;\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 1120,
+        "wires": [
+            [
+                "aa532ed8ad2553cd"
+            ]
+        ]
+    },
+    {
+        "id": "9729397606614fbf",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "audio_query",
+        "func": "msg.url = \"http://127.0.0.1:10101/audio_query\"\nmsg.url += \"?speaker=888753760\"\nmsg.url += \"&text=\" + encodeURIComponent(msg.payload.text);\nmsg.headers = {\n    \"Content-Type\": \"application/x-www-form-urlencoded\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 1080,
+        "wires": [
+            [
+                "ed13bb2eb895c51d"
+            ]
+        ]
+    },
+    {
+        "id": "88010a9543bf51cb",
+        "type": "exec",
+        "z": "52fd92af6f6ef177",
+        "command": "",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 430,
+        "y": 1160,
+        "wires": [
+            [
+                "b3c7b15671a53179"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "aa532ed8ad2553cd",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "Queue管理",
+        "func": "function fail(r) { node.warn(r); return [null, { payload: { error: r } }]; }\n\n//const now = Date.now();\nlet q = flow.get(\"playQueue\") || [];\nlet busy = flow.get(\"playBusy\") || false;\n\n//node.warn(q);\n//node.warn(busy);\n\n// ヘルパ\nfunction sortQ() { q.sort((a, b) => a.runAtEpochMs - b.runAtEpochMs); }\nfunction save() { flow.set(\"playQueue\", q); flow.set(\"playBusy\", busy); }\n\nif (msg.topic === \"enqueue\") {\n  const p = msg.payload;\n  if (!p?.schedule?.runAtEpochMs || !p?.device) {\n    return fail(\"enqueue payload invalid\");\n  }\n  const jobId = msg.jobId || `${p.device}:${p.wav.name16}`;\n\n  // 追加（後勝ちの重複排除をしたい場合はここで同jobIdを消す）\n  // 例：同jobIdがあれば消して最後勝ち\n  q = q.filter(it => it.jobId !== jobId);\n\n  q.push({\n    jobId,\n    runAtEpochMs: p.schedule.runAtEpochMs,\n    payload: p\n  });\n  sortQ();\n  save();\n\n  return [null, { payload: { enqueued: true, jobId, runAtEpochMs: p.schedule.runAtEpochMs, qlen: q.length } }];\n}\n\n// if (msg.topic === \"playing\") {\n//   // 再生開始を知らせる（必要ならjobIdも）\n//   busy = true;\n//   save();\n//   return [null, { payload: { playing: true, jobId: msg.jobId || null } }];\n// }\n\n// if (msg.topic === \"done\") {\n//   busy = false;\n//   save();\n//   return [null, { payload: { done: true, jobId: msg.jobId || null } }];\n// }\n\nif (msg.topic === \"tick\") {\n  if (busy) return null;         // 再生中は新規開始しない（直列再生）\n\n  if (q.length === 0) return null;\n  const now = Date.now(); // ★ここで更新\n  //node.warn(q[0].runAtEpochMs);\n  //node.warn(now);\n\n  // 期限到来判定（秒精度運用：now >= runAt で発火）\n  if (q[0].runAtEpochMs > now) return null;\n\n  const item = q.shift();\n  save();\n\n  // ここで busy を true にして「再生開始」扱いにするなら以下を有効化\n  // busy = true; save();\n\n  const out = {\n    jobId: item.jobId,\n    payload: item.payload\n  };\n\n  // 再生ノードへ渡す\n  msg.jobId = out.jobId;\n  msg.payload = out.payload;\n  return [msg, { payload: { dequeued: true, jobId: out.jobId, qlen: q.length } }];\n}\n\n// 未知topicは無視\nreturn null;\n",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 1220,
+        "wires": [
+            [
+                "d186a975c2d6e09c"
+            ],
+            [
+                "b537f6e4425e6373"
+            ]
+        ]
+    },
+    {
+        "id": "ed13bb2eb895c51d",
+        "type": "http request",
+        "z": "52fd92af6f6ef177",
+        "name": "audio_query",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 410,
+        "y": 1080,
+        "wires": [
+            [
+                "a748ee16491294f3"
+            ]
+        ]
+    },
+    {
+        "id": "84161e57522173a1",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "16kHzに変換",
+        "func": "msg.payload = 'ffmpeg -y -i \"' + msg.wavName + '\"'\nmsg.payload += ' -ar 16000 -ac 1 -acodec pcm_s16le'\nmsg.payload += ' \"' + msg.wavName16 + '\"'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 110,
+        "y": 1160,
+        "wires": [
+            [
+                "88010a9543bf51cb"
+            ]
+        ]
+    },
+    {
+        "id": "46f86d349fecae83",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "Tick 250ms",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.25",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.2",
+        "topic": "tick",
+        "x": 110,
+        "y": 1220,
+        "wires": [
+            [
+                "aa532ed8ad2553cd"
+            ]
+        ]
+    },
+    {
+        "id": "d186a975c2d6e09c",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "処理の振り分け",
+        "func": "//return[表情, moveXY, 音声]\nlet p = msg.payload;\n\nlet out0 = null;\nlet out1 = null;\nlet out2 = null;\n\n// ★ vol を表情系(out0)に含める\nif (p.face != null || p.mouth != null || p.vol != null) {\n    const m0 = RED.util.cloneMessage(msg);\n\n    // ★ face も渡す\n    if (p.face != null) {\n        m0.payload.face = p.face;\n    }\n\n    // mouth は 0..10 → 0..1\n    if (p.mouth != null) {\n        m0.payload.mouth = p.mouth / 10.0;\n    }\n\n    // ★ vol はそのまま渡す（0..255）\n    if (p.vol != null) {\n        m0.payload.vol = p.vol;\n    }\n\n    out0 = m0;\n}\n\nif (p.move != null) {\n    const m1 = RED.util.cloneMessage(msg);\n    const move = p?.move;\n    const payload = {};\n    payload.cmd = \"move\"\n    payload.deviceId = p.device;\n    if (move?.x != null) payload.x = move.x;\n    if (move?.y != null) payload.y = move.y;\n    if (move?.m != null) {\n        payload.ms = move.m;\n    }\n    else {\n        payload.ms = 800\n    }\n\n    if (payload?.x != null || payload?.y != null) {\n        m1.payload = payload;\n        out1 = m1;\n    }\n}\n\nif (p.wav != null) {\n    const m2 = RED.util.cloneMessage(msg);\n    m2.uploadfilepath = p.wav.dir + \"/\" + p.wav.name16;\n    out2 = m2;\n}\n\nif (out0 === null && out1 === null && out2 === null) return null;\n\nreturn [out0, out1, out2];",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 160,
+        "y": 1300,
+        "wires": [
+            [
+                "bb8a4bdc794e7ef0"
+            ],
+            [
+                "444b62704fb97a46"
+            ],
+            [
+                "37b18b8154430c22"
+            ]
+        ]
+    },
+    {
+        "id": "b537f6e4425e6373",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "Queue",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 1220,
+        "wires": []
+    },
+    {
+        "id": "a748ee16491294f3",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "synthesis",
+        "func": "msg.url = \"http://127.0.0.1:10101/synthesis\"\nmsg.url += \"?speaker=888753760\"\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 100,
+        "y": 1120,
+        "wires": [
+            [
+                "c1bddf5a4642087c"
+            ]
+        ]
+    },
+    {
+        "id": "c0ae91bbde76e00b",
+        "type": "file",
+        "z": "52fd92af6f6ef177",
+        "name": "save wav file",
+        "filename": "wavName",
+        "filenameType": "msg",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 410,
+        "y": 1120,
+        "wires": [
+            [
+                "84161e57522173a1"
+            ]
+        ]
+    },
+    {
+        "id": "bb8a4bdc794e7ef0",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "表情設定",
+        "func": "const DEFAULT_DEVICE_ID = flow.get(\"MyID\") || \"M5-a\"\nconst ROOT = \"device\";\n\nmsg.deviceId = msg.payload?.device;\n\nfunction norm(v) {\n  return String(v || \"\").trim().toLowerCase();\n}\n\nconst faceMap = new Map([\n  [\"d\", \"doubt\"],\n  [\"n\", \"neutral\"],\n  [\"a\", \"angry\"],\n  [\"s\", \"sleepy\"],\n  [\"h\", \"happy\"],\n  [\"l\", \"sad\"],\n]);\n\nlet deviceId =\n  (typeof msg.deviceId === \"string\" && msg.deviceId.trim())\n    ? msg.deviceId.trim()\n    : DEFAULT_DEVICE_ID;\n\n// --- ここから複数 publish 対応 ---\nconst out = [];\n\n/**\n * 後勝ち：同種トークンは最後だけ採用するための一時保持\n */\nlet lastVol = null;     // 0..255\nlet lastExpr = null;    // \"happy\" etc\nlet lastMouth = null;   // 0..1\n\n// text は「有効条件判定」に使うので外側スコープで持つ\nlet text = \"\";\n\n// 0) 文字列payload（Discord）: \".m5-a.v5.fh.o3 こんにちは\"\n{\n  if (typeof msg.payload === \"string\") {\n    const raw = msg.payload;\n\n    const iSp = raw.indexOf(\" \");\n    const head = (iSp >= 0) ? raw.slice(0, iSp) : raw;\n    text = (iSp >= 0) ? raw.slice(iSp + 1) : \"\";\n\n    const parts = head.split(\".\").map(s => s.trim()).filter(Boolean);\n\n    // 先頭: deviceId\n    if (parts.length >= 1 && parts[0]) {\n      deviceId = parts[0];\n    }\n\n    // 残り: コマンド（後勝ち）\n    for (let i = 1; i < parts.length; i++) {\n      const tokenRaw = parts[i];\n      const token = norm(tokenRaw);\n\n      // v0..v10 -> audio/vol（後勝ち）\n      {\n        const m = token.match(/^v(\\d{1,2})$/);\n        if (m) {\n          let level = Number(m[1]);\n          if (!Number.isFinite(level)) {\n            node.warn(`invalid vol: ${tokenRaw} (skip)`);\n          } else {\n            if (level < 0) level = 0;\n            if (level > 10) level = 10;\n\n            let vol = Math.floor(level * 25.5); // v5 => 127\n            if (vol < 0) vol = 0;\n            if (vol > 255) vol = 255;\n\n            lastVol = vol; // 後勝ち\n          }\n          continue;\n        }\n      }\n\n      // f? -> face/expr（後勝ち）\n      {\n        const m = token.match(/^f([nashdl])$/);\n        if (m) {\n          const code = m[1];\n          const expr = faceMap.get(code);\n          if (!expr) node.warn(`invalid face: ${tokenRaw} (skip)`);\n          else lastExpr = expr; // 後勝ち\n          continue;\n        }\n      }\n\n      // o0..o10 -> mouth size（後勝ち）\n      {\n        const m = token.match(/^o(-?\\d+)$/);\n        if (m) {\n          let n = Number(m[1]);\n          if (!Number.isFinite(n)) {\n            node.warn(`invalid mouth: ${tokenRaw} (skip)`);\n          } else {\n            if (n < 0) n = 0;\n            if (n > 10) n = 10;\n            lastMouth = n / 10; // 0..1\n          }\n          continue;\n        }\n      }\n\n      node.warn(`unknown cmd: .${tokenRaw} (skip)`);\n    }\n  }\n}\n\n// 1) 既存オブジェクトpayload（従来）も後勝ちで合流\n{\n  const faceRaw = msg.payload?.face;\n  const code = norm(faceRaw);\n  if (code) {\n    const expr = faceMap.get(code);\n    if (!expr) node.warn(`invalid face: ${faceRaw} (skip)`);\n    else lastExpr = expr; // 後勝ち\n  }\n}\n\n{\n  const v = msg.payload?.mouth;\n  if (v !== undefined && v !== null && String(v).trim() !== \"\") {\n    const f = Number(v);\n    if (!Number.isFinite(f)) {\n      node.warn(`invalid mouthSize: ${v} (skip)`);\n    } else {\n      let s = f;\n      if (s < 0) s = 0;\n      if (s > 1) s = 1;\n      lastMouth = s; // 後勝ち\n    }\n  }\n}\n\n// ★追加：既存オブジェクトpayloadの vol も後勝ちで合流\n{\n  const v = msg.payload?.vol;\n  if (v !== undefined && v !== null && String(v).trim() !== \"\") {\n    const n = Number(v);\n    if (!Number.isFinite(n)) {\n      node.warn(`invalid vol: ${v} (skip)`);\n    } else {\n      // 0..255 clamp（解析側が正しいなら実質そのまま）\n      let vol = Math.floor(n);\n      if (vol < 0) vol = 0;\n      if (vol > 255) vol = 255;\n      lastVol = vol; // 後勝ち\n    }\n  }\n}\n\n/* ★★★ ここに入れる（パース完了後 / out.push 前） ★★★ */\n// --- 有効条件（v も含める）---\nconst hasText = (text && String(text).trim() !== \"\");\nconst hasCmd = (lastVol !== null) || (lastExpr !== null) || (lastMouth !== null);\n\nif (!hasText && !hasCmd) {\n  node.warn(\"no effective command (deviceId only) -> error\");\n  return null;\n}\n/* ★★★ ここまで ★★★ */\n\n// 2) 最後にまとめて publish（各種類 最大1回）\nif (lastExpr !== null) {\n  out.push({\n    topic: `${ROOT}/${deviceId}/face/expr/${lastExpr}`,\n    payload: \"\",\n    qos: Number.isFinite(msg.qos) ? msg.qos : 0,\n    retain: false,\n  });\n  node.status({ text: `expr:${lastExpr}` });\n}\n\nif (lastMouth !== null) {\n  out.push({\n    topic: `${ROOT}/${deviceId}/face/mouth/size`,\n    payload: String(lastMouth),\n    qos: Number.isFinite(msg.qos) ? msg.qos : 0,\n    retain: false,\n  });\n  node.status({ text: `mouth:${lastMouth}` });\n}\n\nif (lastVol !== null) {\n  out.push({\n    topic: `${ROOT}/${deviceId}/audio/vol`,\n    payload: String(lastVol),\n    qos: Number.isFinite(msg.qos) ? msg.qos : 0,\n    retain: false,\n  });\n  node.status({ text: `vol:${lastVol}` });\n}\n\n// 何も出さないなら null\nif (out.length === 0) return null;\n\n// MQTT out へは複数メッセージを配列で返す\nreturn [out];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 1280,
+        "wires": [
+            [
+                "8c3b6080d2b03d24",
+                "7140c99cf34d1ba6"
+            ]
+        ]
+    },
+    {
+        "id": "444b62704fb97a46",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ServoXY処理",
+        "func": "// Node-RED Function node: ServoXY (topic B方式)\n// Input : msg.payload = JSON object 例 {\"cmd\":\"move\",\"x\":20,\"y\":-10,\"ms\":350}\n// Output: msg.topic   = \"device/<id>/servoxy/<cmd>\"\n//         msg.payload = \"<args>\" (space-separated numbers)\n//\n// デバイス区別しない運用でも、topicの <id> は任意文字列でOK。\n// （M5側は device/+/servoxy/# を購読し、<id> は見ない設計）\nconst DEFAULT_DEVICE_ID = flow.get(\"MyID\") || \"M5-a\"\nconst ROOT = \"device\";\n\n// ranges\nconst X_MIN = -90, X_MAX = 90;\nconst Y_MIN = -90, Y_MAX = 90;\nconst MS_MIN = 0, MS_MAX = 60000;\nconst DEGSP_MIN = 0, DEGSP_MAX = 2000;\n\nlet last_x = context.get('last_x') || 0;\nlet last_y = context.get('last_y') || 0;\n\n\n\nfunction clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }\nfunction asInt(v, name) {\n  if (typeof v === \"string\") v = v.trim();\n  const n = Number(v);\n  if (!Number.isFinite(n)) throw new Error(`${name} must be number`);\n  return Math.trunc(n);\n}\n\ntry {\n  // deviceId: msg.deviceId or msg.payload.deviceId (optional) or default\n  let deviceId = null;\n  if (typeof msg.deviceId === \"string\" && msg.deviceId.length) deviceId = msg.deviceId.trim();\n  else if (msg.payload && typeof msg.payload === \"object\" && typeof msg.payload.deviceId === \"string\" && msg.payload.deviceId.length)\n    deviceId = msg.payload.deviceId.trim();\n  else deviceId = DEFAULT_DEVICE_ID;\n\n  const p = msg.payload;\n  if (!p || typeof p !== \"object\") throw new Error(\"payload must be JSON object\");\n\n  const cmd = String(p.cmd || p.command || \"\").trim().toLowerCase();\n  if (!cmd) throw new Error(\"cmd is required\");\n\n  let payload = \"\";\n\n  if (cmd === \"move\") {\n    if (p.x == null) {\n      p.x = last_x\n    }\n    if (p.y == null) {\n      p.y = last_y\n    }\n    const x = clamp(asInt(p.x, \"x\"), X_MIN, X_MAX);\n    const y = clamp(asInt(p.y, \"y\"), Y_MIN, Y_MAX);\n    const ms = clamp(asInt(p.ms ?? p.duration, \"ms\"), MS_MIN, MS_MAX);\n    payload = `${x} ${y} ${ms}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n    context.set('last_x', x)\n    context.set('last_y', y)\n\n  } else if (cmd === \"stop\") {\n    payload = \"\";\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 1; // stop は QoS1 推奨\n\n  } else if (cmd === \"home\") {\n    const ms = clamp(asInt(p.ms ?? p.duration, \"ms\"), MS_MIN, MS_MAX);\n    payload = `${ms}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n\n  } else if (cmd === \"speed\") {\n    const sx = clamp(asInt(p.sx ?? p.degps_x, \"sx\"), DEGSP_MIN, DEGSP_MAX);\n    const sy = clamp(asInt(p.sy ?? p.degps_y, \"sy\"), DEGSP_MIN, DEGSP_MAX);\n    payload = `${sx} ${sy}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n\n  } else if (cmd === \"pulse\") {\n    // pulseは安全のため値域チェックは入れず、整数化だけ（必要ならclamp追加）\n    const minX = asInt(p.minX ?? p.min_us_x, \"minX\");\n    const maxX = asInt(p.maxX ?? p.max_us_x, \"maxX\");\n    const minY = asInt(p.minY ?? p.min_us_y, \"minY\");\n    const maxY = asInt(p.maxY ?? p.max_us_y, \"maxY\");\n    payload = `${minX} ${maxX} ${minY} ${maxY}`;\n    msg.qos = Number.isFinite(msg.qos) ? msg.qos : 0;\n\n  } else {\n    throw new Error(`unknown cmd: ${cmd}`);\n  }\n\n  msg.topic = `${ROOT}/${deviceId}/servoxy/${cmd}`;\n  msg.payload = payload;\n\n  node.status({ text: `${cmd} ${payload}`.trim() });\n  return msg;\n\n} catch (e) {\n  node.error(e.message, msg);\n  return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 1320,
+        "wires": [
+            [
+                "7140c99cf34d1ba6"
+            ]
+        ]
+    },
+    {
+        "id": "37b18b8154430c22",
+        "type": "file in",
+        "z": "52fd92af6f6ef177",
+        "name": "wav 読み込み",
+        "filename": "uploadfilepath",
+        "filenameType": "msg",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 120,
+        "y": 1360,
+        "wires": [
+            [
+                "5802d8f99022e937"
+            ]
+        ]
+    },
+    {
+        "id": "c1bddf5a4642087c",
+        "type": "http request",
+        "z": "52fd92af6f6ef177",
+        "name": "synthesis",
+        "method": "POST",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 240,
+        "y": 1120,
+        "wires": [
+            [
+                "c0ae91bbde76e00b"
+            ]
+        ]
+    },
+    {
+        "id": "8c3b6080d2b03d24",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 1260,
+        "wires": []
+    },
+    {
+        "id": "7140c99cf34d1ba6",
+        "type": "mqtt out",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "4d41ace42db280c3",
+        "x": 630,
+        "y": 1320,
+        "wires": []
+    },
+    {
+        "id": "5802d8f99022e937",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "wav解析",
+        "func": "const buf = msg.payload;\nif (!Buffer.isBuffer(buf)) {\n    node.error(\"msg.payload is not a Buffer\", msg);\n    return null;\n}\nif (buf.length < 44) {\n    node.error(`WAV too short: ${buf.length} bytes`, msg);\n    return null;\n}\nconst riff = buf.toString(\"ascii\", 0, 4);          // \"RIFF\"\nconst wave = buf.toString(\"ascii\", 8, 12);         // \"WAVE\"\nconst fmt = buf.toString(\"ascii\", 12, 16);        // \"fmt \"\nconst data = buf.toString(\"ascii\", 36, 40);        // \"data\" (※標準44Bヘッダの場合)\n\nconst header = {\n    riff,\n    riffSize: buf.readUInt32LE(4),                 // fileSize-8\n    wave,\n\n    fmtChunkId: fmt,\n    fmtChunkSize: buf.readUInt32LE(16),            // 通常16\n    audioFormat: buf.readUInt16LE(20),             // 1=PCM\n    numChannels: buf.readUInt16LE(22),\n    sampleRate: buf.readUInt32LE(24),\n    byteRate: buf.readUInt32LE(28),\n    blockAlign: buf.readUInt16LE(32),\n    bitsPerSample: buf.readUInt16LE(34),\n\n    dataChunkId: data,\n    dataSize: buf.readUInt32LE(40),\n\n    // 参考（方式Aで使うとき便利）\n    bytesPerSec: buf.readUInt32LE(24) * buf.readUInt16LE(22) * (buf.readUInt16LE(34) / 8),\n    headerBytes: 44,\n    dataOffset: 44\n};\n\n// PCM本体（ヘッダ44Bを除去）\nmsg.pcmBuffer = Buffer.from(buf.subarray(44));\n\n// JSON化（Node-REDではオブジェクトでOK。必要なら downstream で JSON node）\nmsg.payload = header;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 1360,
+        "wires": [
+            [
+                "42282aa278c397d8"
+            ]
+        ]
+    },
+    {
+        "id": "42282aa278c397d8",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "Wav pub",
+        "func": "// Node-RED Function node: WAV(->pcmBuffer) を MQTT でストリーム送信\n// 前提:\n//   msg.payload   = WAVヘッダ情報オブジェクト { sampleRate, numChannels, bitsPerSample, ... }\n//   msg.pcmBuffer = PCM本体 Buffer（44Bヘッダ除去済み）\n//   ※もし msg.pcmbuffer になっている場合も吸収する\n\nconst CHUNK_BYTES = 4096;        // 4096〜8192 推奨\nconst PREBURST_CHUNKS = 6;       // 開始時に一気送り（プレバッファ）\nconst QOS_CTRL = 1;\nconst QOS_PCM = 0;\nconst BEGIN_GUARD_MS = 80;       // 50〜150msで調整（まず80ms推奨）\nconst END_GUARD_MS = 300;        // まず300〜800msで\n\nconst targetDeviceId = flow.get(\"MyID\") || \"M5-a\";\nif (typeof targetDeviceId !== \"string\" || targetDeviceId.length === 0) {\n    node.error(\"target device id is missing (flow.MyID)\", msg);\n    return null;\n}\n\n// 入力取り出し\nconst hdr = msg.payload; // ヘッダ情報JSON（あなたの前段で作ったやつ）\nconst pcm = msg.pcmBuffer || msg.pcmbuffer;\n\nif (!hdr || typeof hdr !== \"object\") {\n    node.error(\"msg.payload (header JSON) is missing\", msg);\n    return null;\n}\nif (!Buffer.isBuffer(pcm)) {\n    node.error(\"msg.pcmBuffer (PCM Buffer) is missing or not a Buffer\", msg);\n    return null;\n}\n\nconst sr = hdr.sampleRate;\nconst ch = hdr.numChannels;\nconst bits = hdr.bitsPerSample;\n\nif (!Number.isFinite(sr) || !Number.isFinite(ch) || !Number.isFinite(bits)) {\n    node.error(\"header JSON must include sampleRate/numChannels/bitsPerSample\", msg);\n    return null;\n}\nif (bits !== 16) {\n    node.error(`Only PCM16 supported for now (bitsPerSample=${bits})`, msg);\n    return null;\n}\n\n// ファイル名（任意）\nlet name = \"rx.wav\";\nif (typeof msg.filename === \"string\" && msg.filename.length > 0) {\n    name = msg.filename.split(\"/\").pop();\n}\n\n// セッションID（streamId）\nconst sid = Date.now().toString(36) + \"-\" + Math.random().toString(36).slice(2, 8);\nconst BASE = `device/${targetDeviceId}/pcm16/${sid}`;\n\n// 送信間隔を「音声時間」に合わせる\nconst bytesPerSec = sr * ch * (bits / 8);\nconst chunkMs = Math.max(1, Math.round(1000 * CHUNK_BYTES / bytesPerSec)); // 最低1ms\n\n// 送信ユーティリティ（MQTT out ノードへ渡す想定）\nfunction sendCtrl(obj, retain = false) {\n    node.send({\n        topic: `${BASE}/ctrl`,\n        qos: QOS_CTRL,\n        payload: JSON.stringify(obj)\n    });\n}\n\nfunction sendPcm(seq, part, flags) {\n    const h = Buffer.alloc(8);\n    h.writeUInt32LE(seq >>> 0, 0);\n    h.writeUInt16LE(part.length & 0xFFFF, 4);\n    h.writeUInt16LE(flags & 0xFFFF, 6);\n    node.send({\n        topic: `${BASE}/pcm`,\n        qos: QOS_PCM,\n        payload: Buffer.concat([h, part])\n    });\n}\n\n// 1) begin（ctrl）\nsendCtrl({\n    type: \"begin\",\n    sid,\n    name,\n    sr,\n    ch,\n    bits,\n    codec: \"pcm16\",\n    seq0: 0,\n    chunkBytes: CHUNK_BYTES,\n    pcmBytes: pcm.length,\n    ts: Date.now()\n}, false);\n\n// 2) pcm chunks\nlet seq = 0;\nlet sentChunks = 0;\n\nfor (let off = 0; off < pcm.length; off += CHUNK_BYTES) {\n    const part = pcm.subarray(off, Math.min(off + CHUNK_BYTES, pcm.length));\n    const isLast = (off + CHUNK_BYTES) >= pcm.length;\n    const flags = isLast ? 0x0002 : 0x0000; // 例: bit1=last\n\n    // プレバッファ分は即時、それ以降は chunkMs 間隔で送る\n    const delay = BEGIN_GUARD_MS + ((seq < PREBURST_CHUNKS) ? 0 : (seq - PREBURST_CHUNKS + 1) * chunkMs);\n\n    ((s, p, f) => {\n        setTimeout(() => {\n            sendPcm(s, p, f);\n            sentChunks++;\n        }, delay);\n    })(seq, part, flags);\n\n    seq++;\n}\n\n// 3) end（ctrl）\nconst endDelay =\n    BEGIN_GUARD_MS +\n    ((seq <= PREBURST_CHUNKS) ? 0 : (seq - PREBURST_CHUNKS + 2) * chunkMs) +\n    END_GUARD_MS;\n\nsetTimeout(() => {\n    sendCtrl({\n        type: \"end\",\n        sid,\n        lastSeq: seq - 1,\n        chunks: seq,\n        pcmBytes: pcm.length,\n        ts: Date.now()\n    });\n    node.status({ text: `sent ${seq} chunks, ${pcm.length} bytes, chunkMs=${chunkMs}ms` });\n}, endDelay);\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 1360,
+        "wires": [
+            [
+                "7140c99cf34d1ba6"
+            ]
+        ]
+    },
+    {
+        "id": "6b7306f063760f5b",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "キューの確認",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 110,
+        "y": 1460,
+        "wires": [
+            [
+                "1b07d3195828f4c5"
+            ]
+        ]
+    },
+    {
+        "id": "1b07d3195828f4c5",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "キューの確認",
+        "func": "const now = Date.now();\nlet q = flow.get(\"playQueue\") || [];\nlet busy = flow.get(\"playBusy\") || false;\n\nnode.warn(q);\nmsg.payload = q\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 1460,
+        "wires": [
+            [
+                "91a9c5730b5df833"
+            ]
+        ]
+    },
+    {
+        "id": "91a9c5730b5df833",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 55",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 460,
+        "y": 1460,
+        "wires": []
+    },
+    {
+        "id": "9ca32b31bfcb914a",
+        "type": "http in",
+        "z": "52fd92af6f6ef177",
+        "name": "GET /mqtt",
+        "url": "/mqtt",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 1540,
+        "wires": [
+            [
+                "e34f9f77aaddb1ee"
+            ]
+        ]
+    },
+    {
+        "id": "e34f9f77aaddb1ee",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "GET処理",
+        "func": "const placeholder = `.m5-1.x45.t13:00:00.fh こんにちは。\\n.m5-2.x45.t13:00:01.fh こんにちは。\\n.m5-3.x45.t13:00:02.fh こんにちは。\\n.m5-4.x45.t13:00:03.fh こんにちは。\\n.m5-5.x45.t13:00:04.fh こんにちは。`;\n\n// placeholderは属性に入れるので改行を &#10; にして安全に\nmsg.text = \"\";\nmsg.placeholderAttr = placeholder.replace(/\\n/g, \"&#10;\");\nmsg.status = \"\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 1540,
+        "wires": [
+            [
+                "512932e21f61e118"
+            ]
+        ]
+    },
+    {
+        "id": "512932e21f61e118",
+        "type": "template",
+        "z": "52fd92af6f6ef177",
+        "name": "HTML",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!doctype html>\n<html lang=\"ja\">\n\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n  <title>MQTTにpublish</title>\n\n  <style>\n    :root {\n      --bg: #0b1220;\n      --panel: rgba(255, 255, 255, .08);\n      --panel2: rgba(255, 255, 255, .06);\n      --text: rgba(255, 255, 255, .92);\n      --muted: rgba(255, 255, 255, .65);\n      --border: rgba(255, 255, 255, .12);\n      --accent: #6ee7ff;\n      --accent2: #a78bfa;\n      --radius: 14px;\n      --shadow: 0 10px 30px rgba(0, 0, 0, .35);\n    }\n\n    @media (prefers-color-scheme: light) {\n      :root {\n        --bg: #f6f7fb;\n        --panel: rgba(255, 255, 255, .92);\n        --panel2: rgba(255, 255, 255, .80);\n        --text: rgba(15, 23, 42, .95);\n        --muted: rgba(15, 23, 42, .62);\n        --border: rgba(15, 23, 42, .12);\n        --shadow: 0 10px 26px rgba(2, 6, 23, .12);\n      }\n    }\n\n    * {\n      box-sizing: border-box;\n    }\n\n    body {\n      font-family: system-ui, Segoe UI, Arial, sans-serif;\n      margin: 0;\n      color: var(--text);\n      min-height: 100vh;\n      background:\n        radial-gradient(1200px 600px at 10% 0%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 60%),\n        radial-gradient(900px 500px at 95% 10%, color-mix(in srgb, var(--accent2) 18%, transparent) 0%, transparent 65%),\n        linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 85%, black));\n    }\n\n    header {\n      padding: 18px 24px;\n      border-bottom: 1px solid var(--border);\n      background: color-mix(in srgb, var(--panel) 65%, transparent);\n      backdrop-filter: blur(10px);\n    }\n\n    main {\n      display: grid;\n      grid-template-columns: minmax(260px, 420px) 1fr;\n      gap: 18px;\n      padding: 18px 24px;\n    }\n\n    @media (max-width: 860px) {\n      main {\n        grid-template-columns: 1fr;\n      }\n    }\n\n    html.force-mobile main {\n      grid-template-columns: 1fr !important;\n    }\n\n    html.force-desktop main {\n      grid-template-columns: minmax(260px, 420px) 1fr !important;\n    }\n\n    aside {\n      position: sticky;\n      top: 12px;\n      align-self: start;\n      border: 1px solid var(--border);\n      border-radius: var(--radius);\n      padding: 12px;\n      background: color-mix(in srgb, var(--panel) 72%, transparent);\n      box-shadow: var(--shadow);\n    }\n\n    .hint {\n      font-size: 13px;\n      color: var(--muted);\n      margin: 0 0 10px 0;\n    }\n\n    details {\n      border-top: 1px solid var(--border);\n      padding: 10px 0;\n    }\n\n    details:first-of-type {\n      border-top: 0;\n    }\n\n    summary {\n      cursor: pointer;\n      font-weight: 750;\n      letter-spacing: .2px;\n    }\n\n    .tok {\n      display: grid;\n      grid-template-columns: 1fr auto;\n      gap: 10px;\n      align-items: start;\n      margin: 10px 0;\n    }\n\n    code {\n      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\n      font-size: 13px;\n      padding: 2px 6px;\n      border-radius: 8px;\n      border: 1px solid var(--border);\n      background: color-mix(in srgb, var(--panel2) 75%, transparent);\n    }\n\n    .btn {\n      padding: 6px 10px;\n      font-size: 12px;\n      border: 1px solid var(--border);\n      background: color-mix(in srgb, var(--panel2) 70%, transparent);\n      color: var(--text);\n      border-radius: 12px;\n      cursor: pointer;\n      transition: transform .05s ease, filter .2s ease, background .2s ease;\n    }\n\n    .btn:hover {\n      filter: brightness(1.08);\n    }\n\n    .btn:active {\n      transform: translateY(1px);\n    }\n\n    textarea {\n      padding: 12px;\n      font-size: 16px;\n      width: 100%;\n      height: 260px;\n      resize: vertical;\n      color: var(--text);\n      border-radius: var(--radius);\n      border: 1px solid var(--border);\n      outline: none;\n      background: color-mix(in srgb, var(--panel) 55%, transparent);\n      box-shadow: var(--shadow);\n    }\n\n    textarea::placeholder {\n      color: color-mix(in srgb, var(--muted) 92%, transparent);\n    }\n\n    textarea:focus {\n      border-color: color-mix(in srgb, var(--accent) 55%, var(--border));\n      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow);\n    }\n\n    button[type=\"submit\"] {\n      padding: 10px 14px;\n      font-size: 15px;\n      font-weight: 800;\n      margin-top: 10px;\n      border: 0;\n      border-radius: 12px;\n      cursor: pointer;\n      color: rgba(10, 12, 20, .95);\n      background: linear-gradient(90deg, var(--accent), var(--accent2));\n      box-shadow: 0 10px 24px rgba(0, 0, 0, .25);\n      transition: transform .05s ease, filter .2s ease;\n    }\n\n    button[type=\"submit\"]:hover {\n      filter: brightness(1.05);\n    }\n\n    button[type=\"submit\"]:active {\n      transform: translateY(1px);\n    }\n\n    .status {\n      margin: 10px 0 0 0;\n      font-size: 14px;\n      color: var(--muted);\n    }\n\n    .row {\n      display: flex;\n      gap: 10px;\n      align-items: center;\n      flex-wrap: wrap;\n    }\n\n    .small {\n      font-size: 12px;\n      color: var(--muted);\n    }\n\n    .viewtoggle {\n      margin-left: auto;\n      display: flex;\n      gap: 8px;\n    }\n\n    .viewtoggle button {\n      padding: 6px 10px;\n      font-size: 13px;\n      border: 1px solid var(--border);\n      background: color-mix(in srgb, var(--panel2) 70%, transparent);\n      color: var(--text);\n      border-radius: 12px;\n      cursor: pointer;\n    }\n\n    .viewtoggle button[aria-pressed=\"true\"] {\n      background: color-mix(in srgb, var(--panel) 80%, transparent);\n      border-color: color-mix(in srgb, var(--accent) 35%, var(--border));\n    }\n  </style>\n</head>\n\n<body>\n  <header>\n    <div class=\"row\">\n      <h1 style=\"margin:0; font-size:20px;\">シナリオ入力</h1>\n      <!-- ★ v2へ更新 -->\n      <span class=\"small\">PDF（完全整形版 v2 2026-02-27）の仕様を内蔵</span>\n\n      <div class=\"viewtoggle\" role=\"group\" aria-label=\"表示切替\">\n        <button type=\"button\" id=\"btnAuto\" aria-pressed=\"true\">自動</button>\n        <button type=\"button\" id=\"btnPc\" aria-pressed=\"false\">PC</button>\n        <button type=\"button\" id=\"btnSp\" aria-pressed=\"false\">スマホ</button>\n      </div>\n    </div>\n  </header>\n\n  <main>\n    <aside>\n      <p class=\"hint\">クリックで展開／「挿入」でカーソル位置に入ります（ドット区切り）</p>\n\n      <details open>\n        <summary>必須トークン</summary>\n        <div class=\"tok\">\n          <div>\n            <div><code>.M5-8</code>（例）</div>\n            <div class=\"small\">必須（大小文字無視／自分宛のみ処理）</div>\n          </div>\n          <button class=\"btn\" type=\"button\" data-insert=\".M5-8\">挿入</button>\n        </div>\n      </details>\n\n      <details open>\n        <summary>基本文法（超重要）</summary>\n        <div class=\"small\">\n          ・コマンドは必ずドット「.」で連結<br>\n          ・最初のスペースまでがコマンド列<br>\n          ・最初のスペース以降は本文（音声テキスト）<br><br>\n          形式：<code>.<span style=\"opacity:.9\">deviceId</span>.<span style=\"opacity:.9\">cmd1</span>.<span style=\"opacity:.9\">cmd2</span>... ␠本文</code><br>\n          <!-- ★ v2の例に更新 -->\n          例：<code>.m5-8.dt3s500ms.v5.fH.o3 こんにちは</code>\n        </div>\n      </details>\n\n      <!-- ★ v2: dtNsMms を追加して全仕様を残す -->\n      <details>\n        <summary>スケジューリング（ドット区切り）</summary>\n\n        <div class=\"tok\">\n          <div><code>.dYYYY/MM/DD</code> 例: <code>.d2026/02/19</code>（d単独不可）</div>\n          <button class=\"btn\" type=\"button\" data-insert=\".d2026/02/19\">挿入</button>\n        </div>\n\n        <div class=\"tok\">\n          <div><code>.tHH:MM:SSmsMMM</code> 例: <code>.t19:30:05ms500</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".t19:30:05ms500\">挿入</button>\n        </div>\n\n        <div class=\"tok\">\n          <div><code>.dtNs</code> 例: <code>.dt2s</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".dt2s\">挿入</button>\n        </div>\n\n        <div class=\"tok\">\n          <div><code>.dtNms</code> 例: <code>.dt500ms</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".dt500ms\">挿入</button>\n        </div>\n\n        <!-- ★ 追加: dtNsMms -->\n        <div class=\"tok\">\n          <div><code>.dtNsMms</code> 例: <code>.dt3s500ms</code>（秒＋ミリ秒合成）</div>\n          <button class=\"btn\" type=\"button\" data-insert=\".dt3s500ms\">挿入</button>\n        </div>\n\n        <div class=\"small\">\n          小数は禁止（<code>.dt0.5s</code> は無効）／秒部・ms部は整数のみ／同種トークン複数指定は後勝ち／全部省略ならASAP実行\n        </div>\n      </details>\n\n      <details>\n        <summary>移動系（ドット区切り）</summary>\n        <div class=\"tok\">\n          <div><code>.xN</code>（整数・符号可）例: <code>.x10</code> / <code>.x-5</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".x10\">挿入</button>\n        </div>\n        <div class=\"tok\">\n          <div><code>.yN</code>（整数・符号可）例: <code>.y-5</code> / <code>.y20</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".y20\">挿入</button>\n        </div>\n        <div class=\"tok\">\n          <div><code>.mN</code>（ms整数）例: <code>.m800</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".m800\">挿入</button>\n        </div>\n        <div class=\"small\">同種トークン複数指定は後勝ち</div>\n      </details>\n\n      <details>\n        <summary>表情系（ドット区切り）</summary>\n        <div class=\"tok\">\n          <div><code>.fN</code> Neutral</div><button class=\"btn\" type=\"button\" data-insert=\".fN\">挿入</button>\n        </div>\n        <div class=\"tok\">\n          <div><code>.fA</code> Angry</div><button class=\"btn\" type=\"button\" data-insert=\".fA\">挿入</button>\n        </div>\n        <div class=\"tok\">\n          <div><code>.fS</code> Sleepy</div><button class=\"btn\" type=\"button\" data-insert=\".fS\">挿入</button>\n        </div>\n        <div class=\"tok\">\n          <div><code>.fH</code> Happy</div><button class=\"btn\" type=\"button\" data-insert=\".fH\">挿入</button>\n        </div>\n        <div class=\"tok\">\n          <div><code>.fD</code> Doubt（困惑＋冷や汗）</div><button class=\"btn\" type=\"button\" data-insert=\".fD\">挿入</button>\n        </div>\n        <div class=\"tok\">\n          <div><code>.fL</code> Sad（Long face）</div><button class=\"btn\" type=\"button\" data-insert=\".fL\">挿入</button>\n        </div>\n        <div class=\"small\">同種トークン複数指定は後勝ち</div>\n      </details>\n\n      <details>\n        <summary>口サイズ（ドット区切り）</summary>\n        <div class=\"tok\">\n          <div><code>.oN</code>（0〜10）例: <code>.o3</code> / <code>.o10</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".o3\">挿入</button>\n        </div>\n        <div class=\"small\">範囲外はクランプ／同種トークン複数指定は後勝ち／本文なしでも有効</div>\n      </details>\n\n      <details>\n        <summary>音量（ドット区切り）</summary>\n        <div class=\"tok\">\n          <div><code>.vN</code>（0〜10）例: <code>.v5</code> / <code>.v10</code></div>\n          <button class=\"btn\" type=\"button\" data-insert=\".v5\">挿入</button>\n        </div>\n        <div class=\"small\">0〜10 → 0〜255（floor(N×25.5)）／範囲外はクランプ／同種トークン複数指定は後勝ち</div>\n      </details>\n\n      <details open>\n        <summary>有効条件（超重要）</summary>\n        <div class=\"small\">\n          以下のいずれか1つ以上が必要：<br>\n          ・本文あり<br>\n          ・x / y / m 指定あり<br>\n          ・f 指定あり<br>\n          ・o 指定あり<br>\n          ・v 指定あり<br>\n          上記すべて無しはエラー\n        </div>\n      </details>\n    </aside>\n\n    <section>\n      <form method=\"POST\" action=\"/mqtt\">\n        <textarea id=\"cmd\" name=\"text\" placeholder=\"{{{placeholderAttr}}}\">{{text}}</textarea>\n        <div class=\"row\">\n          <button type=\"submit\">publishする</button>\n          <button class=\"btn\" type=\"button\" id=\"example\">例を入れる</button>\n          <span class=\"small\">（例ボタンは“作業用”です）</span>\n        </div>\n      </form>\n      {{#status}}<p class=\"status\">{{status}}</p>{{/status}}\n    </section>\n  </main>\n\n  <script>\n    const ta = document.getElementById('cmd');\n\n    function insertAtCursor(text) {\n      const start = ta.selectionStart ?? ta.value.length;\n      const end = ta.selectionEnd ?? ta.value.length;\n      const before = ta.value.slice(0, start);\n      const after = ta.value.slice(end);\n      ta.value = before + text + after;\n      const pos = start + text.length;\n      ta.focus();\n      ta.setSelectionRange(pos, pos);\n    }\n\n    document.querySelectorAll('[data-insert]').forEach(btn => {\n      btn.addEventListener('click', () => insertAtCursor(btn.dataset.insert));\n    });\n\n    document.getElementById('example').addEventListener('click', () => {\n      // 必須トークンの後ろにはドットを付けない\n      // 以降の要素は .x .y ... のように「先頭ドット付き」で連結\n      // ★ v2の例：dtNsMms + v を含める\n      insertAtCursor(\".M5-8.dt3s500ms.v5.x10.y-5.m800.fH.o3 こんにちは。\\n\");\n    });\n  </script>\n\n  <script>\n    const root = document.documentElement;\n\n    const btnAuto = document.getElementById('btnAuto');\n    const btnPc = document.getElementById('btnPc');\n    const btnSp = document.getElementById('btnSp');\n\n    function setPressed(a, p, s) {\n      btnAuto.setAttribute('aria-pressed', a);\n      btnPc.setAttribute('aria-pressed', p);\n      btnSp.setAttribute('aria-pressed', s);\n    }\n\n    function applyMode(mode) {\n      root.classList.remove('force-mobile', 'force-desktop');\n      if (mode === 'desktop') root.classList.add('force-desktop');\n      if (mode === 'mobile') root.classList.add('force-mobile');\n\n      setPressed(\n        mode === 'auto' ? 'true' : 'false',\n        mode === 'desktop' ? 'true' : 'false',\n        mode === 'mobile' ? 'true' : 'false'\n      );\n      localStorage.setItem('viewMode', mode);\n    }\n\n    applyMode(localStorage.getItem('viewMode') || 'auto');\n\n    btnAuto.addEventListener('click', () => applyMode('auto'));\n    btnPc.addEventListener('click', () => applyMode('desktop'));\n    btnSp.addEventListener('click', () => applyMode('mobile'));\n  </script>\n</body>\n\n</html>",
+        "output": "str",
+        "x": 430,
+        "y": 1540,
+        "wires": [
+            [
+                "a8d9823bc0966717"
+            ]
+        ]
+    },
+    {
+        "id": "bb3310798ba42cf7",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "POST処理",
+        "func": "const placeholder = `.m5-1.x45.t13:00:00.fh こんにちは。\\n.m5-2.x45.t13:00:01.fh こんにちは。\\n.m5-3.x45.t13:00:02.fh こんにちは。\\n.m5-4.x45.t13:00:03.fh こんにちは。\\n.m5-5.x45.t13:00:04.fh こんにちは。`;\n\nlet text = \"\";\nif (msg.req && msg.req.body) {\n    if (typeof msg.req.body === 'string') {\n        text = msg.req.body; // text/plain\n    } else if (typeof msg.req.body.text === 'string') {\n        text = msg.req.body.text; // form-urlencoded\n    }\n}\n\nmsg.text = text;\nmsg.placeholderAttr = placeholder.replace(/\\n/g, \"&#10;\");\nmsg.status = text ? \"受け付けました\" : \"空のまま受け付けました\";\n\n// Discord送信用に同じテキストを別プロパティにも\nmsg.pubishdText = text;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 1580,
+        "wires": [
+            [
+                "512932e21f61e118",
+                "c0dad78711bd5d3a",
+                "5d1a82a4fb3b349d"
+            ]
+        ]
+    },
+    {
+        "id": "a8d9823bc0966717",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "header",
+        "func": "msg.headers = { \"content-type\": \"text/html; charset=utf-8\" };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 1540,
+        "wires": [
+            [
+                "d7bd129e69daf8d0"
+            ]
+        ]
+    },
+    {
+        "id": "34e7f92e16738db1",
+        "type": "http in",
+        "z": "52fd92af6f6ef177",
+        "name": "POST /mqtt",
+        "url": "/mqtt",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 1580,
+        "wires": [
+            [
+                "bb3310798ba42cf7"
+            ]
+        ]
+    },
+    {
+        "id": "c0dad78711bd5d3a",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "分割してpublish",
+        "func": "// ===== 設定 =====\nconst ROOT = \"chat\";\nconst guild_id = \"1405431604825948281\";\nconst channel_id = \"1425128928472727572\";\nconst idmap = flow.get(\"idmap\") || {};\nconst SEND_EMPTY_LINES = false; // 空行も送るなら true\n\nfunction norm(v) {\n    return String(v || \"\").trim().toLowerCase();\n}\n\n// 規定：コマンドは \".\" から始まり、最初の空白で終了\n// その「最初の空白(群)」を \"\\n\" に置換して \".cmd\\n本文\" にする\nfunction cmdSpaceToNewline(s) {\n    return String(s).replace(/^(\\.\\S+)\\s+/, \"$1\\n\");\n}\n\n// 行頭の \".<id>\" 部分だけを、hitKey の表記に置換する\n// 例:\n// \".m5-8 test\"     -> \".M5-8 test\"\n// \".m5-8.fh test\"  -> \".M5-8.fh test\"\nfunction replaceHeadIdWithHitKey(line, hitKey) {\n    return String(line).replace(/^\\.([^. \\t]+)(?=\\.|\\s|$)/, \".\" + String(hitKey));\n}\n\n// idmap のキーを大小区別せず探して IP を引く\nfunction resolveIpById(idRaw) {\n    const idLower = norm(idRaw);\n    let hitKey = null;\n    for (const k of Object.keys(idmap)) {\n        if (String(k).toLowerCase() === idLower) {\n            hitKey = k;\n            break;\n        }\n    }\n    const ip = hitKey ? (idmap[hitKey]?.IP ?? null) : null;\n    return { hitKey, ip };\n}\n\n// ===== 入力チェック =====\nconst text = msg.text;\nif (typeof text !== \"string\") return null;\n\n// CRLF/LF/CR 対応で行分割\nlet lines = text.split(/\\r\\n|\\n|\\r/);\n\n// 空行除去\nif (!SEND_EMPTY_LINES) lines = lines.filter(l => l.length > 0);\nif (lines.length === 0) return null;\n\n// ===== 行キューに積む =====\nlet q = context.get(\"queue\") || [];\nq = q.concat(lines);\ncontext.set(\"queue\", q);\n\n// すでに実行中なら積むだけで終了\nif (context.get(\"running\")) return null;\ncontext.set(\"running\", true);\n\n// ===== 1行ずつ逐次処理 =====\nfunction stopAll() {\n    // 元コードの break 相当（以降の行もやめる）\n    context.set(\"queue\", []);\n    context.set(\"running\", false);\n}\n\nfunction processOneLine() {\n    const queue = context.get(\"queue\") || [];\n    if (queue.length === 0) {\n        context.set(\"running\", false);\n        return;\n    }\n\n    const line = queue.shift();\n    context.set(\"queue\", queue);\n\n    // 先頭が \".<コマンド><空白>...\" を満たすか（コマンド終端＝最初の空白）\n    const m = line.match(/^(\\.\\S+)(?:\\s+.*)?$/);\n    if (!m) {\n        // 規定違反：以降も処理しない（break相当）\n        stopAll();\n        return;\n    }\n\n    const cmd = m[1]; // \".m5-8\" or \".m5-8.fh\" ...\n    // IDは \".<id>(.<subcmd>...)\" の <id> 部分\n    const idRaw = cmd.slice(1).split(\".\")[0];\n\n    const { hitKey, ip } = resolveIpById(idRaw);\n    if (!ip) {\n        // IP不明：以降も処理しない（break相当）\n        stopAll();\n        return;\n    }\n\n    // publish用に、先頭のID表記を idmap の実キー表記へ揃える\n    const normalizedLine = replaceHeadIdWithHitKey(line, hitKey);\n\n    // ---- ここから「この1行の3段送信」 ----\n    // 1) disconnect（即時）\n    node.send({\n        action: \"disconnect\",\n        status: \"切断しました\",\n        payload: normalizedLine,\n        id: hitKey,\n        ip\n    });\n\n    // 2) connect（200ms後）\n    setTimeout(() => {\n        node.send({\n            action: \"connect\",\n            broker: { broker: ip, port: 1883 },\n            status: `${ip}に接続しました`,\n            payload: normalizedLine,\n            id: hitKey,\n            ip\n        });\n    }, 200);\n\n    // 3) post（500ms後）\n    // ※payloadは「コマンド直後の空白→改行」に変換\n    setTimeout(() => {\n        const payload2 = cmdSpaceToNewline(normalizedLine);\n        node.status({ text: payload2 });\n\n        node.send({\n            topic: `${ROOT}/${guild_id}/${channel_id}`,\n            payload: payload2,\n            status: \"投稿しました\",\n            id: hitKey,\n            ip\n        });\n\n        // 次の行へ\n        setTimeout(processOneLine, 0);\n    }, 500);\n}\n\nprocessOneLine();\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 1580,
+        "wires": [
+            [
+                "81139a6f0b833cdb",
+                "6e8917c6879a8241"
+            ]
+        ]
+    },
+    {
+        "id": "d7bd129e69daf8d0",
+        "type": "http response",
+        "z": "52fd92af6f6ef177",
+        "name": "GETへ",
+        "statusCode": "",
+        "headers": {},
+        "x": 690,
+        "y": 1540,
+        "wires": []
+    },
+    {
+        "id": "81139a6f0b833cdb",
+        "type": "mqtt out",
+        "z": "52fd92af6f6ef177",
+        "name": "サーバー任意",
+        "topic": "",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "4a8239d9bf3e26b0",
+        "x": 660,
+        "y": 1580,
+        "wires": []
+    },
+    {
+        "id": "6e8917c6879a8241",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 56",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 1640,
+        "wires": []
+    },
+    {
+        "id": "57cd8931d2677b69",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "chat/guild/channelトピックを読んで処理します",
+        "info": "",
+        "x": 200,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "c97b21aa0a75787f",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "現在のキューを確認します",
+        "info": "",
+        "x": 130,
+        "y": 1420,
+        "wires": []
+    },
+    {
+        "id": "6c137c1c8593c7fd",
+        "type": "comment",
+        "z": "52fd92af6f6ef177",
+        "name": "Webサイト /mqtt のGET, POST",
+        "info": "",
+        "x": 150,
+        "y": 1500,
+        "wires": []
+    },
+    {
+        "id": "5d1a82a4fb3b349d",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 57",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 420,
+        "y": 1640,
+        "wires": []
+    },
+    {
+        "id": "411fecd5887a0e70",
+        "type": "inject",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 520,
+        "wires": [
+            [
+                "8b19ff2d09902f22"
+            ]
+        ]
+    },
+    {
+        "id": "8b19ff2d09902f22",
+        "type": "function",
+        "z": "52fd92af6f6ef177",
+        "name": "ラズパイのidを巡回する",
+        "func": "const nonce =\n    (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 12);\n\nflow.set(\"nonce\", nonce);\nflow.set(\"idmap\", {});\n\nmsg.payload = \"ID_LIST_REQ|\" + nonce;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 520,
+        "wires": [
+            [
+                "a3e80e9cb5f80110"
+            ]
+        ]
+    },
+    {
+        "id": "a3e80e9cb5f80110",
+        "type": "udp out",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "addr": "255.255.255.255",
+        "iface": "",
+        "port": "46000",
+        "ipv": "udp4",
+        "outport": "",
+        "base64": false,
+        "multicast": "broad",
+        "x": 620,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "c2baf8efefdd6076",
+        "type": "debug",
+        "z": "52fd92af6f6ef177",
+        "name": "debug 58",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "2919507a2fe90ced",
+        "type": "link out",
+        "z": "52fd92af6f6ef177",
+        "name": "udp45678 in",
+        "mode": "link",
+        "links": [
+            "4436703fcf772aad"
+        ],
+        "x": 165,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "5e43aab0c71dc3b1",
+        "type": "udp in",
+        "z": "52fd92af6f6ef177",
+        "name": "",
+        "iface": "",
+        "port": "45678",
+        "ipv": "udp4",
+        "multicast": "false",
+        "group": "",
+        "datatype": "buffer",
+        "x": 80,
+        "y": 180,
+        "wires": [
+            [
+                "2919507a2fe90ced",
+                "e24abbe0cb8f9235"
+            ]
+        ]
+    },
+    {
+        "id": "a52296ba1319d56f",
+        "type": "link out",
+        "z": "52fd92af6f6ef177",
+        "name": "udp46000 in",
+        "mode": "link",
+        "links": [
+            "3a86dc6056051652"
+        ],
+        "x": 195,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "306bebd24b4843b2",
+        "type": "switch",
+        "z": "52fd92af6f6ef177",
+        "name": "POWER OFFの有無",
+        "property": "payload.poweroff",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 540,
+        "y": 980,
+        "wires": [
+            [
+                "86385489dc747da2"
+            ]
+        ]
+    },
+    {
+        "id": "86385489dc747da2",
+        "type": "shutdown",
+        "z": "52fd92af6f6ef177",
+        "name": "電源オフ",
+        "x": 720,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "4d41ace42db280c3",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "4a8239d9bf3e26b0",
+        "type": "mqtt-broker",
+        "name": "サーバー任意",
+        "broker": "192.168.1.100",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": false,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "7f29bd99060c9d8e",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-rpi-shutdown": "0.0.2"
+        }
+    }
+]

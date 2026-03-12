@@ -1,0 +1,241 @@
+Plot Report
+-----------
+
+Report Written:     02:31 Saturday, March 07, 2026
+Design Path:        D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4.pcb
+Design Title:       
+Created:            2022/04/10 3:23:23
+Last Saved:         2026/03/07 0:01:05
+Editing Time:       2151 min
+Units:              mm (precision 3)
+
+
+Device Settings
+===============
+
+
+Gerber Settings
+===============
+
+Gerber Format: RS-274-X
+    Leading zero suppression.
+    G01 assumed throughout.
+    Line termination <*> <CR> <LF>.
+    3.5 format absolute mm.
+    Format commands defined in Gerber file.
+    Aperture table defined in Gerber file.
+    Hardware arcs allowed.
+
+
+Drill Settings
+==============
+
+    Excellon Format 1
+    Format 3.5 absolute in mm.
+    Zero suppression Leading
+
+
+
+Plots Output
+============
+
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Top Silkscreen.gbr
+
+    Layers:
+    ------------------
+    Top Silkscreen
+
+    D-Code Shape  (mm)
+    ---------------------
+    D10    Round 0.127
+    D11    Round 0.105
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Top Copper.gbr
+
+    Layers:
+    --------------
+    Top Copper
+
+    D-Code Shape  (mm)
+    ---------------------------------
+    D12    Round 0.305
+    D13    Round 0.254
+    D14    Round 0.800
+    D15    Round 2.000
+    D16    Round 5.250
+    D17    Round 1.524
+    D18    Rectangle 1.400 X 1.420
+    D19    Round 1.400
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Top Solder Mask.gbr
+
+    Layers:
+    -------------------
+    Top Solder Mask
+
+    D-Code Shape  (mm)
+    ---------------------------------
+    D70    Round 2.152
+    D71    Round 5.402
+    D20    Round 1.676
+    D21    Rectangle 1.552 X 1.572
+    D22    Round 1.552
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Bottom Silkscreen.gbr
+
+    Layers:
+    ---------------------
+    Bottom Silkscreen
+
+    D-Code Shape  (mm)
+    ---------------------
+    D10    Round 0.127
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Bottom Copper.gbr
+
+    Layers:
+    -----------------
+    Bottom Copper
+
+    D-Code Shape  (mm)
+    --------------------------------------------
+    D12    Round 0.305
+    D13    Round 0.254
+    D14    Round 0.800
+    D15    Round 2.000
+    D16    Round 5.250
+    D17    Round 1.524
+    D18    Rectangle 1.400 X 1.420
+    D19    Round 1.400
+    D23    Round 0.600
+    D24    Bullet 0.800 X 0.600  Rotation 270
+    D25    Bullet 0.800 X 0.600  Rotation 90
+    D26    Rectangle 1.200 X 1.200
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Bottom Solder Mask.gbr
+
+    Layers:
+    ----------------------
+    Bottom Solder Mask
+
+    D-Code Shape  (mm)
+    --------------------------------------------
+    D70    Round 2.152
+    D71    Round 5.402
+    D20    Round 1.676
+    D21    Rectangle 1.552 X 1.572
+    D22    Round 1.552
+    D27    Bullet 0.952 X 0.752  Rotation 270
+    D28    Round 0.952
+    D29    Bullet 0.952 X 0.752  Rotation 90
+    D72    Rectangle 1.352 X 1.352
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Gerber Drill Data - [Through Hole].gbr
+
+    Layers:
+    ------------------
+    [Through Hole]
+
+    D-Code Shape  (mm)
+    ---------------------
+    D73    Round 1.200
+    D74    Round 3.150
+    D75    Round 0.900
+    D76    Round 0.813
+
+NC Drill Output
+===============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - NC Drill Data - [Through Hole].drl
+
+    Output:
+    ---------------------------
+    Plated Round Drill Holes
+    Plated Slots
+
+    Tool  Size       Count   ID
+    ----------------------------------
+    T001  0.81280 mm 6     D
+    T002  0.90000 mm 18    C
+    T003  1.20000 mm 3     A
+    T004  3.15000 mm 2     B
+    ----------------------------------
+    Total            29
+    ----------------------------------
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - NC Drill Data - [Through Hole] (Unplated).drl
+
+    Output:
+    -----------------------------
+    Unplated Round Drill Holes
+    Unplated Slots
+
+    Tool  Size Count   ID
+    ----------------------------
+    ----------------------------
+    Total      0
+    ----------------------------
+
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Drill Ident Drawing - [Through Hole].gbr
+
+    Layers:
+    ------------------
+    [Through Hole]
+
+
+Drill Ident Drawing
+===================
+
+    Drill Plated Size  Shape ID
+    ------------------------------------
+    1.200 Y      2.540 Round A
+    3.150 Y      2.540 Round B
+    0.900 Y      2.540 Round C
+    0.813 Y      2.540 Round D
+
+    D-Code Shape  (mm)
+    ---------------------
+    D10    Round 0.127
+    D77    Round 2.540
+
+Gerber Output
+=============
+
+D:\git\github\stack-chan-tarosay\ELE-CAD\Kinokuni-ICT_StackChan4 - Documentation.gbr
+
+    Layers:
+    ------------------
+    Documentation
+    Board Outlines
+
+    D-Code Shape  (mm)
+    ---------------------
+    D12    Round 0.305
+
+End Of Report.
