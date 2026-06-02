@@ -173,16 +173,16 @@ void setup() {
   player.beginAsync(2048, 3, 0, 1);  // prioを上げる（音声を優先）
   dumpHeap("after beginAsync");
 
-  // MQTT
-  M5.Display.println("MQTT setup.");
-  gRouter.enableAsyncDispatch(8);  // ★まず有効化（キュー深さは適当に）
-  gRouter.begin(gBrokerIp, gBrokerPort, 5120);
-  dumpHeap("after gRouter.begin");
+  // // MQTT
+  // M5.Display.println("MQTT setup.");
+  // gRouter.enableAsyncDispatch(8);  // ★まず有効化（キュー深さは適当に）
+  // gRouter.begin(gBrokerIp, gBrokerPort, 5120);
+  // dumpHeap("after gRouter.begin");
 
-  BaseType_t ok1 = xTaskCreatePinnedToCore(mqttTask, "mqttTask", 3072, nullptr, 2, &hMqttTask, 0);
-  BaseType_t ok2 = xTaskCreatePinnedToCore(dispatchTask, "dispatchTask", 3072, nullptr, 1, &hDispatchTask, 0);
-  Serial.printf("[TASK] mqttTask=%d dispatchTask=%d hMqtt=%p hDisp=%p\n", (int)ok1, (int)ok2, hMqttTask, hDispatchTask);
-  dumpHeap("after xTaskCreatePinnedToCore");
+  // BaseType_t ok1 = xTaskCreatePinnedToCore(mqttTask, "mqttTask", 3072, nullptr, 2, &hMqttTask, 0);
+  // BaseType_t ok2 = xTaskCreatePinnedToCore(dispatchTask, "dispatchTask", 3072, nullptr, 1, &hDispatchTask, 0);
+  // Serial.printf("[TASK] mqttTask=%d dispatchTask=%d hMqtt=%p hDisp=%p\n", (int)ok1, (int)ok2, hMqttTask, hDispatchTask);
+  // dumpHeap("after xTaskCreatePinnedToCore");
 
   delay(3000);
 
@@ -199,21 +199,21 @@ void setup() {
   String servoxyTopic = topicBase + F("/servoxy/#");
   String faceTopic = topicBase + F("/face/#");
 
-  gRouter.addSubscription(pcm16CtrlTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
-    gPcm16StreamHandler.handle(t, p, n);
-  });
-  gRouter.addSubscription(pcm16PcmTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
-    gPcm16StreamHandler.handle(t, p, n);
-  });
-  gRouter.addSubscription(audioVolTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
-    gVolumeHandler.handle(t, p, n);
-  });
-  gRouter.addSubscription(servoxyTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
-    (void)gServoXYHandler.handle(t, p, n);
-  });
-  gRouter.addSubscription(faceTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
-    (void)gFaceHandler.handle(t, p, n);
-  });
+  // gRouter.addSubscription(pcm16CtrlTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
+  //   gPcm16StreamHandler.handle(t, p, n);
+  // });
+  // gRouter.addSubscription(pcm16PcmTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
+  //   gPcm16StreamHandler.handle(t, p, n);
+  // });
+  // gRouter.addSubscription(audioVolTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
+  //   gVolumeHandler.handle(t, p, n);
+  // });
+  // gRouter.addSubscription(servoxyTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
+  //   (void)gServoXYHandler.handle(t, p, n);
+  // });
+  // gRouter.addSubscription(faceTopic.c_str(), [&](const char* t, uint8_t* p, unsigned int n) {
+  //   (void)gFaceHandler.handle(t, p, n);
+  //});
 }
 
 void loop() {
